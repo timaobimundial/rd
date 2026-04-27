@@ -45,27 +45,29 @@ client.onreadystatechange = function () {
             if (raw === "PERM") return "PERM";
             if (raw.length < 10) return "";
             return (
-                raw.slice(4, 6) +
-                "/" +
-                raw.slice(2, 4) +
-                "/20" +
-                raw.slice(0, 2) +
-                " " +
-                raw.slice(6, 8) +
-                ":" +
-                raw.slice(8, 10) +
-                " UTC"
+                raw.slice(4, 6) + "/" +
+                raw.slice(2, 4) + "/20" +
+                raw.slice(0, 2) + " " +
+                raw.slice(6, 8) + ":" +
+                raw.slice(8, 10) + " UTC"
             );
         }
 
         for (var i = 0; i < notams.length; i++) {
-            tableString += "<tr><td style='padding:15px 0 0 0'><br>";
-            tableString += "<a href='https://aisweb.decea.mil.br/?i=aerodromos&codigo=SBUR#notam' target='_blank'>";
-            tableString += notams[i].getElementsByTagName("n")[0]?.textContent || "N/A";
-            tableString += "</a> ";
 
+            var n = notams[i].getElementsByTagName("n")[0]?.textContent || "N/A";
             var b = notams[i].getElementsByTagName("b")[0]?.textContent || "";
             var c = notams[i].getElementsByTagName("c")[0]?.textContent || "";
+            var e = notams[i].getElementsByTagName("e")[0]?.textContent || "";
+            var f = notams[i].getElementsByTagName("f")[0]?.textContent || "";
+            var g = notams[i].getElementsByTagName("g")[0]?.textContent || "";
+            var d = notams[i].getElementsByTagName("d")[0]?.textContent || "";
+
+            // Cabeçalho
+            tableString += "<tr><td colspan='2' style='padding:10px 0 0 0'>";
+            tableString += "<a href='https://aisweb.decea.mil.br/?i=aerodromos&codigo=SBUR#notam' target='_blank'>";
+            tableString += n;
+            tableString += "</a> ";
 
             if (formatDateTime(b)) {
                 tableString +=
@@ -76,15 +78,28 @@ client.onreadystatechange = function () {
                 tableString += "Data inválida";
             }
 
-            tableString += "</td></tr><tr><td>";
-            tableString += notams[i].getElementsByTagName("e")[0]?.textContent || "";
-            tableString += "</td></tr><tr><td style='font-size:16px;color:#a3a3a3'>";
-            tableString += notams[i].getElementsByTagName("d")[0]?.textContent || "";
+            tableString += "</td></tr>";
+
+            // Campo E
+            tableString += "<tr><td colspan='2'>";
+            tableString += e;
+            tableString += "</td></tr>";
+
+            // F - G
+            if (f || g) {
+                tableString += "<tr><td colspan='2' style='font-size:16px;color:#a3a3a3'>";
+                tableString += f + (f && g ? " - " : "") + g;
+                tableString += "</td></tr>";
+            }
+
+            // Campo D
+            tableString += "<tr><td colspan='2' style='font-size:16px;color:#a3a3a3'>";
+            tableString += d;
             tableString += "</td></tr>";
         }
 
         tableString +=
-            "<td align='right'><a href='https://aisweb.decea.mil.br/?i=aerodromos&codigo=SBUR#notam' target='_blank'>VER NA AISWEB</a></td>";
+            "<tr><td colspan='2' align='right'><a href='https://aisweb.decea.mil.br/?i=aerodromos&codigo=SBUR#notam' target='_blank'>VER NA AISWEB</a></td></tr>";
         tableString += "</table>";
 
         container.innerHTML = tableString;
@@ -92,6 +107,7 @@ client.onreadystatechange = function () {
 };
 
 client.send();
+
 
 /* -------------------- SUPLEMENTOS -------------------- */
 var clientSup;
@@ -117,7 +133,7 @@ clientSup.onreadystatechange = function () {
         var tableSup = "<table width='100%'>";
 
         for (var i = suplementos.length - 1; i >= 0; i--) {
-            tableSup += "<tr><td style='padding:15px 0 0 0'><br>";
+            tableSup += "<tr><td style='padding:10px 0 0 0'>";
 
             var serie = suplementos[i].getElementsByTagName("serie")[0]?.textContent || "";
             var numero = suplementos[i].getElementsByTagName("n")[0]?.textContent || "0";
@@ -147,15 +163,19 @@ clientSup.onreadystatechange = function () {
                 titulo +
                 "</span>";
 
-            tableSup += "</td></tr><tr><td>";
+            tableSup += "</td></tr>";
+
+            tableSup += "<tr><td>";
             tableSup += suplementos[i].getElementsByTagName("texto")[0]?.textContent || "";
-            tableSup += "</td></tr><tr><td style='font-size:16px;color:#a3a3a3'>";
+            tableSup += "</td></tr>";
+
+            tableSup += "<tr><td style='font-size:16px;color:#a3a3a3'>";
             tableSup += suplementos[i].getElementsByTagName("duracao")[0]?.textContent || "";
             tableSup += "</td></tr>";
         }
 
         tableSup +=
-            "<td align='right'><a href='https://aisweb.decea.mil.br/?i=aerodromos&codigo=SBUR#sup' target='_blank'>VER NA AISWEB</a></td>";
+            "<tr><td align='right'><a href='https://aisweb.decea.mil.br/?i=aerodromos&codigo=SBUR#sup' target='_blank'>VER NA AISWEB</a></td></tr>";
         tableSup += "</table>";
 
         containerSup.innerHTML = tableSup;
