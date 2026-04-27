@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<meta http-equiv="refresh" content="300">
+<head>
+<meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radial e distância</title>
+    <link rel="icon" type="image/x-icon" href="arq/favicon.ico">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+    <link rel="stylesheet" type="text/css" href="css/topo.css">
+    <link rel="stylesheet" type="text/css" href="css/menu.css">
+    <link rel="stylesheet" type="text/css" href="css/container.css">
+    <link rel="stylesheet" href="css/bc.css" />
+    <link rel="stylesheet" href="css/coord.css">
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+</head>
+
+
+
+
+
+
+
+
+<script src="js/jquery.min.js"></script>
+
+<script>
+document.addEventListener('input', function(event) {
+    const target = event.target;
+
+    // Verifica se o elemento é um input do tipo texto
+    if (target.tagName === 'INPUT' && target.type === 'text') {
+        target.value = target.value.toUpperCase(); 
+    }
+});
+
+</script>
+
+
+
+<script src="js/notam.js" defer></script>
+
+
+
+
+
+<script>
+  function verificarPeriodo() {
+    const agora = new Date();
+    const diaSemana = agora.getDay(); // Dia da semana local
+    const hora = agora.getHours().toString().padStart(2, '0');
+    const minuto = agora.getMinutes().toString().padStart(2, '0');
+    const horaAtual = hora + minuto;
+
+// Data limite: 30/11/2026 11:50 UTC
+    const dataFinal = new Date(Date.UTC(2026, 10, 30, 11, 50)); // mês 10 = novembro
+    if (agora.getTime() >= dataFinal.getTime()) {
+      document.getElementById('saida').innerHTML = '';
+      return;
+    }
+
+    let periodos = [
+      { inicio: '0415', fim: '0800' },
+      { inicio: '0900', fim: '1150' },
+      { inicio: '2345', fim: '0245' }
+    ];
+
+    // Alterar o primeiro período apenas nas terças-feiras
+    if (diaSemana === 2) { // terça-feira local
+      periodos[0] = { inicio: '0440', fim: '0755' };
+    }
+
+    function dentroDoPeriodo(p) {
+      if (p.inicio <= p.fim) {
+        return horaAtual >= p.inicio && horaAtual <= p.fim;
+      } else {
+        return horaAtual >= p.inicio || horaAtual <= p.fim;
+      }
+    }
+
+    const texto = 'SBUL CLSD';
+    let resultado = `<span class="texto-principal">${texto}</span> `;
+
+    for (let i = 0; i < periodos.length; i++) {
+      const periodo = periodos[i];
+      const periodoStr = `${periodo.inicio}-${periodo.fim}`;
+      if (dentroDoPeriodo(periodo)) {
+        resultado += `<span class="periodo ativo">${periodoStr}</span> `;
+      } else {
+        resultado += `<span class="periodo inativo">${periodoStr}</span> `;
+      }
+    }
+
+    document.getElementById('saida').innerHTML = resultado.trim();
+  }
+
+  document.addEventListener('DOMContentLoaded', verificarPeriodo);
+</script>
+
+
+
+
+
+<script>
+  function verificarPeriodo() {
+    const agora = new Date();
+    const hora = agora.getUTCHours().toString().padStart(2, '0');
+    const minuto = agora.getUTCMinutes().toString().padStart(2, '0');
+    const horaAtual = hora + minuto;
+
+    // Data limite: 22/02/2026 08:00 UTC
+    const dataFinal = new Date(Date.UTC(2026, 1, 22, 8, 0)); // mês 1 = fevereiro
+    if (agora.getTime() >= dataFinal.getTime()) {
+      document.getElementById('aviso_ur').innerHTML = '';
+      return;
+    }
+
+    const periodo = { inicio: '2345', fim: '0800' };
+
+    function dentroDoPeriodo(p) {
+      if (p.inicio <= p.fim) {
+        return horaAtual >= p.inicio && horaAtual <= p.fim;
+      } else {
+        return horaAtual >= p.inicio || horaAtual <= p.fim;
+      }
+    }
+
+    const texto = 'SBUR CLSD';
+    let resultado = `<span class="texto-principal">${texto}</span> `;
+
+    const periodoStr = `${periodo.inicio}-${periodo.fim}`;
+    if (dentroDoPeriodo(periodo)) {
+      resultado += `<span class="periodo ativo">${periodoStr}</span> `;
+    } else {
+      resultado += `<span class="periodo inativo">${periodoStr}</span> `;
+    }
+
+    document.getElementById('aviso_ur').innerHTML = resultado.trim();
+  }
+
+  document.addEventListener('DOMContentLoaded', verificarPeriodo);
+</script>
+
+
+
+
+
+
+
+
+<body>
+    <div class="topo">
+
+
+        <div class="topo1">
+
+
+
+<a href="https://aisweb.decea.mil.br/?i=aerodromos&codigo=SBUR" target="_blank" title="Ver na AISWEB">
+<img src="arq/aiswebsbur.png">
+</a>
+
+
+
+</div>
+
+
+
+
+        <div class="topo2">
+
+
+
+         <input type="text" id="icaoCode" placeholder="Consultar aeródromo. Ex: SBUR" maxlength="4" />
+        
+         <button id="searchButton" class="button_ad" title="Ver na AISWEB" onClick="search_ad()"></button>
+        
+
+       <div class="result" id="result"></div>
+</div>
+
+
+
+       <div class="map" id="map"></div>
+       <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+
+
+<script src="js/ad.js" defer></script>
+
+
+
+
+
+
+
+
+<div class="topo3">
+
+
+<div id="search-container">
+    <input type="text" id="marca" placeholder="Consultar matrícula. Ex: PTKKJ" maxlength="5" autofocus outline:"none"/>
+    <button id="search-btn" class="button_mat" title="Ver na ANAC"></button>
+</div>
+<div id="result_anac" class="result_anac"></div>
+<img id="loading" src="arq/l.gif" style="display:none;"/>
+
+
+
+
+
+<script src="js/anac.js" defer></script>
+
+
+
+
+
+</div>
+
+
+
+
+
+<div class="topo4">
+  <input type="text" maxlength="16" placeholder="Publicação. Ex: MCA 100-16" title="Consultar Publicação" id="search_publ"/>
+  <button id="bt_publ" class="button_publ" title="Ver em Publicações" onClick="search_publ()"></button>
+
+  <script>
+    function search_publ() {
+      var base_publ = "https://publicacoes.decea.mil.br/publicacao/"; 
+      var userInput_publ = document.getElementById('search_publ').value;
+      userInput_publ = userInput_publ.replace(/\s+/g, "-");
+
+      // Limpa o input
+      document.getElementById('search_publ').value = "";
+
+      // Abre em nova aba
+      window.open(base_publ + userInput_publ, "_blank");
+    }
+
+    document.getElementById("search_publ")
+      .addEventListener("keyup", function(event) {
+        event.preventDefault();
+        if (event.keyCode === 13) {
+            document.getElementById("bt_publ").click();
+        }
+    });
+  </script>
+</div>
+
+
+
+
+         <div class="topo5">
+
+
+
+
+
+
+
+
+<div id="coordTool_container">
+
+  <div class="inputRow">
+    <input type="text" id="coordInput_coord" placeholder="Cole coordenadas aqui">
+    <img id="pin_img_coord" src="arq/pin.png" alt="Pin" title="Conversor de coordenadas">
+    <button id="clearInput_coord" title="Limpar campo">X</button>
+  </div>
+
+  <div class="output_coord">
+    <div class="coordLine_coord">
+      <button class="copyBtn_coord" id="copyExtra_coord" data-tooltip="" title="Clique para copiar">Extraer</button>
+      <button class="copyBtn_coord" id="copyGeo_coord" data-tooltip="" title="Clique para copiar">GeoAISWEB</button>
+      <button class="copyBtn_coord" id="copyGmap_coord" data-tooltip="" title="Clique para copiar">Google Maps</button>
+      <button class="copyBtn_coord" id="copySky_coord" data-tooltip="" title="Clique para copiar">SkyVector</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/coord.js"></script>
+
+
+
+
+
+
+
+	</div>
+
+
+
+        <div class="topo6">
+<div class="sol">
+
+        <div id="date"></div>
+<table>
+
+    <tr>
+        <td class="srss" title="Nascer do sol">SR</td>
+        <td><div id="sunrise"></div></td>
+    </tr>
+    <tr>
+        <td class="srss" title="Pôr do sol">SS</td>
+        <td><div id="sunset"></div></td>
+    </tr>
+</table>
+
+
+
+        
+	
+    
+
+
+    <script>
+        async function fetchData() {
+            try {
+                const response = await fetch('https://aisweb.decea.mil.br/api/?apiKey=1505393075&apiPass=1f301b84-0a7c-11ed-9f5b-0050569ac2e1&area=sol&icaoCode=sbur'); // Substitua pela URL da sua API
+                const xmlText = await response.text();
+                
+                // Criar um parser para o XML
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                
+                // Extrair os dados desejados
+                const date = xmlDoc.getElementsByTagName('date')[0].textContent;
+                const sunrise = xmlDoc.getElementsByTagName('sunrise')[0].textContent;
+                const sunset = xmlDoc.getElementsByTagName('sunset')[0].textContent;
+
+                // Formatar a data para DD/MM/AAAA
+                const formattedDate = date.split('-').reverse().join('/');
+
+                // Atualizar o DOM com os dados
+                document.getElementById('date').textContent = formattedDate;
+                document.getElementById('sunrise').textContent = sunrise;
+                document.getElementById('sunset').textContent = sunset;
+            } catch (error) {
+                console.error('Erro ao buscar dados:', error);
+            }
+        }
+
+        // Chamar a função para buscar os dados ao carregar a página
+        fetchData();
+    </script>
+
+
+</div>
+
+<div class="atualizar">
+<button class="button_refresh" onclick="location.reload(true);" title="Caso negativo, tentar CTRL+F5">ATUALIZAR &#8635;</button>
+<spam style="font-size: 0.75em;">(CTRL+F5)</spam>
+</div>
+
+	
+	</div>
+
+    </div>
+
+       <div class="menu">
+        <div class="dropdown">
+            <a href="#">Cartas</a>
+            <div id="dropdown-content" class="dropdown-content"></div>
+        </div>
+
+        <a href="https://outlook.office365.com/mail/" target="_blank">E-mail</a>
+        <a href="https://aisweb.decea.mil.br/eaip" target="_blank">eAIP</a>
+        <a href="https://extraer.com.br/" target="_blank">Extraer</a>
+        <a href="arq/fixos.jpg" target="_blank">Fixos</a>
+        <a href="https://www.flightradar24.com/-6.9,-48.1/7" target="_blank">Flightradar24</a>
+        <a href="https://geoaisweb.decea.gov.br/" target="_blank">GeoAISWEB</a>
+        <a href="http://login.lg.com.br/saml/auto/dtt_navbrasil" target="_blank">Ponto (novo)</a>
+        <a href="https://nav.populisservicos.com.br/" target="_blank">Populis</a>
+        <a href="https://publicacoes.decea.mil.br/" target="_blank">Publicações</a>
+        <a href="https://redemet.decea.mil.br/old/?i=produtos&p=consulta-de-mensagens-opmet" target="_blank">Redemet</a>
+	<a href="https://sigcea.decea.mil.br/#/relPrev" onclick="copiarTexto()" target="_blank">RELPREV</a>
+
+ <script>
+        function copiarTexto() {
+            const texto = "Sistema Saipher TATIC, pelo usuário taticuser alterou nível da aeronave de forma automática  do FLXXX para o FLXXX, prejudicando a consciência situacional do operador, causando insegurança quanto a confiabilidade das informações na ficha de progressão de vôo.";
+
+            navigator.clipboard.writeText(texto)
+                .then(() => {
+                    
+                })
+                .catch(err => {
+                    alert("Erro ao copiar texto: " + err);
+                    console.error(err);
+                });
+        }
+    </script>
+
+
+        <a href="http://aisweb.decea.gov.br/downloads/rotaer/rotaer_completo.pdf" target="_blank">Rotaer</a>
+        <a href="https://sdia.decea.mil.br/" target="_blank">SDIA</a>
+        <a href="https://navbrasilgovbr.sharepoint.com/teams/dnb.sbur/SitePages/Home.aspx" target="_blank">SharePoint</a>
+        <a href="https://siga.navbrasil.gov.br/siga/public/app/login?cont=http%3A%2F%2Fsiga.navbrasil.gov.br%2Fsiga%2Fapp%2Fprincipal" target="_blank">SigaNav</a>
+        <a href="https://sigma.decea.mil.br/slot/loginPage" target="_blank">Sigma</a>
+        <a href="https://skyvector.com/" target="_blank">SkyVector</a>
+
+    </div>
+
+
+
+<script src="js/dd.js" defer></script>
+
+
+
+
+
+    <div class="container">
+
+
+
+
+
+
+        <div class="container_metar">
+
+<div class="metar_sbur">
+
+<script>
+
+var urlsbur = "https://api-redemet.decea.mil.br/mensagens/metar/SBUR?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
+
+$(document).ready(function(){
+  $.ajax({
+    url: urlsbur,
+    dataType: 'json',
+      error: function(){
+        console.log('JSON FAILED for data');
+      },
+    success:function(results){
+ 
+      var cartsburItemsList = document.getElementById("cartsburItemsList");
+
+      results.data.data.forEach(function(element) {
+      cartsburItemsList.insertAdjacentHTML( 'beforeend',   "<li class='metar_sbur'>"  + "<b>"  + element.mens + "</b>" + "</li>");
+    }); // end of forEach
+    }  // end of success fn
+   }) // end of Ajax call
+ }) // end of $(document).ready() function
+</script>
+
+
+
+ <div id="cartsbur">
+
+<table>
+ <tr>
+    <th style="text-align: left">
+    <ul id="cartsburItemsList" class="metar_sbur"></ul>
+    </th>
+    <th style="vertical-align: bottom; padding: 0px 0px 0px 0px">
+    
+    </div>    
+</th>
+  </tr>
+
+</table>
+ </div>
+
+
+</div>
+          
+
+
+  
+<script>
+
+var url = "https://api-redemet.decea.mil.br/mensagens/metar/SBUL,SBCF,SBBH,SBKP,SBSP,SBAU,SBAX,SBSR,SBRP,SBJD,SBMT,SBIT,SDCO,SIMK,SNPD?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
+
+$(document).ready(function(){
+  $.ajax({
+    url: url,
+    dataType: 'json',
+      error: function(){
+        console.log('JSON FAILED for data');
+      },
+    success:function(results){
+ 
+      var cartItemsList = document.getElementById("cartItemsList");
+
+      results.data.data.forEach(function(element) {
+      cartItemsList.insertAdjacentHTML( 'beforeend',   "<li>"  + "<b>"  + element.mens + "</b>" + "</li>");
+    }); // end of forEach
+    }  // end of success fn
+   }) // end of Ajax call
+ }) // end of $(document).ready() function
+</script>
+
+
+
+ <div id="cart">
+
+<table>
+ <tr>
+    <th style="text-align: left">
+    <ul id="cartItemsList"></ul>
+    </th>
+    <th style="vertical-align: bottom; padding: 0px 0px 6px 0px">
+    
+    </div>    
+</th>
+  </tr>
+
+</table>
+ </div>
+
+
+        </div>
+
+        <div class="container_notam">
+
+<div class="aviso" title="Clique para ver o NOTAM completo" >
+<a href="https://aisweb.decea.mil.br/?i=notam&view=single&notam_id=10332403" target="_blank" style="text-decoration: none; color: ; font-family: ; font-size: ; line-height: ">
+ <div id="saida"></div>
+</a>
+</div>
+
+<br>
+
+<div class="aviso" title="Clique para ver o SUP AIP completo">
+  <a href="https://aisweb.decea.mil.br/?i=aerodromos&codigo=SBUR#sup" target="_blank" style="text-decoration: none; color: ; font-family: ; font-size: ; line-height: ">
+    <div id="aviso_ur"></div>
+  </a>
+</div>
+
+
+<br>
+
+<div id="bc" title="Aeronaves em um raio 70NM de SBUR">
+
+
+
+ <div id="resultado-container">
+
+<div id="mensagem-carregamento">
+    <img src="arq/l.gif" alt="Carregando..." style="display: none;">
+</div>
+
+        <table id="resultado-table" style="display:none;">
+            <tbody id="resultado-table-body">
+                </tbody>
+        </table>
+        <div id="mensagem-carregamento"></div>
+    </div>
+
+    <script src="js/bc.js"></script>
+
+
+</div>
+
+<br>
+
+	<div id="api_nt_container" class="api_nt_container">
+
+
+
+<div id="api_nt_container" class="api_nt_container">
+<div id="api_nt" class="api_nt"></div>
+</div>
+
+
+
+        </div>
+
+
+
+    </div>
+
+    
+
+
+    
+</body>
+</html>

@@ -1,0 +1,132 @@
+.wrap_tel {
+  max-width:640px;
+  margin:0 auto;
+}
+
+/* Wrapper do input */
+.inputWrap_tel {
+  position: relative;
+  display: flex;
+  align-items: center; /* alinha input e ícones verticalmente */
+}
+
+/* INPUT (ocupa todo espaço disponível) */
+#busca_tel {
+  flex: 1; /* ocupa o máximo dentro do wrapper */
+  padding: 5px 10px; /* padding interno */
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* PIN e X fora do input, imediatamente à direita */
+#pin_img_tel,
+#clearInput_tel {
+  margin-left: 6px; /* espaço entre input e ícone */
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  display: inline-block;
+  flex-shrink: 0; /* evita encolher */
+}
+
+/* X */
+#clearInput_tel {
+  border: none;
+  background: transparent;
+  font-size: 14px; /* legível no tamanho 16x16 */
+  font-weight: bold;
+  color: #333;
+  display: none; /* inicia escondido */
+  line-height: 16px;
+  text-align: center;
+  padding: 0;
+}
+
+/* DROPDOWN – largura dinâmica */
+#resultado_tel {
+  position:absolute;
+  background:#fff;
+  border:1px solid #ccc;
+  min-width:165px;          
+  width:max-content;        
+  max-width:90vw;           
+  white-space:nowrap;       
+  max-height:320px;
+  overflow-y:auto;
+  margin-top:0px;
+  border-radius:8px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.12);
+  display:none;
+  z-index:999;
+}
+
+.resultado-item_tel {
+  padding:12px 14px;
+  border-bottom:1px solid #eee;
+  cursor:pointer;
+  font-size:14px;
+  white-space:nowrap;
+}
+
+.resultado-item_tel:last-child {
+  border-bottom:none;
+}
+
+.resultado-item_tel:hover {
+  background:#f2f8ff;
+}
+
+/* estado ativo via teclado */
+.ativo_tel {
+  background:#d9edff !important;
+}
+
+/* POPUP */
+#popup_bg_tel {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  z-index:2000;
+  align-items:center;
+  justify-content:center;
+}
+
+#popup_tel {
+  background:#fff;
+  width:420px;
+  max-width:92%;
+  border-radius:14px;
+  padding:26px 22px;
+  position:relative;
+  text-align:center;
+  box-shadow:0 18px 50px rgba(0,0,0,0.35);
+}
+
+#popupNome_tel {
+  font-size:30px;
+  font-weight:600;
+  margin-bottom:14px;
+}
+
+#popupFone_tel {
+  font-size:30px;
+  font-weight:500;
+  color:#0366a6;
+}
+
+/* Fechar popup */
+#fechar_tel {
+  position:absolute;
+  top:10px;
+  right:12px;
+  font-size:28px;
+  cursor:pointer;
+}
+
+@media (max-width:420px){
+  #popupNome_tel,
+  #popupFone_tel {
+    font-size:28px;
+  }
+}

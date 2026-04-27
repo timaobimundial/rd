@@ -1,0 +1,27 @@
+
+
+#resultado-container {
+    margin-top: 20px;
+    font-size: 16px;
+
+}
+#resultado-table {
+    width: auto;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+#resultado-table td {
+    border: none; /* Remove as bordas das células */
+    padding-top: 4px; /* Reduz o padding superior */
+    padding-bottom: 4px; /* Reduz o padding inferior */
+    padding-left: 8px;
+    padding-right: 8px;
+    text-align: center;
+    white-space: nowrap;
+}
+#resultado-table tr {
+    border-bottom: 1px solid transparent; /* Mantém o espaçamento transparente */
+}
+.dentro-poligono-e-abaixo-f195 {
+    text-decoration: underline;
+}

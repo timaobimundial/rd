@@ -1,0 +1,21 @@
+body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+.atualizar {
+width: 80%;
+}
+.srss {
+    background: #2c6e99;
+    padding: 0px 2px 0px 2px;
+    border: 1px solid rgba(0,0,0,.1);
+    border-radius: 3px;
+    color: white;
+    font-weight: normal;
+    margin-bottom: 1px;
+}

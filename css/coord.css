@@ -1,0 +1,100 @@
+#coordTool_container {
+  font-family: Arial, sans-serif;
+  padding: 0px;
+  max-width: 600px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+width: 180px;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  position: relative; /* necessário para o absolute interno */
+}
+
+#coordTool_container input {
+  flex: 1;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+#pin_img_coord {
+  width: 16px;
+  height: 16px;
+  cursor: default;
+}
+
+#clearInput_coord {
+  width: 16px;
+  height: 16px;
+  display: none;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-weight: bold;
+  line-height: 14px;
+  text-align: center;
+  padding: 0;
+  font-size: 12px;
+}
+
+.output_coord {
+  margin-top: 0px;
+}
+
+.coordLine_coord {
+  position: absolute;
+  top: 11%; /* alinha verticalmente com o input */
+  right: 30%;  /* posiciona à direita do input */
+  transform: translateY(-50%);
+  display: flex;
+  gap: 2px;
+  flex-wrap: nowrap; /* evita quebra */
+}
+
+button.copyBtn_coord {
+  padding: 2px 2px;
+  cursor: pointer;
+  position: relative;
+  display: none;
+font-size: 14px;
+
+background: #2c6e99;
+    
+    border: 1px solid rgba(0,0,0,.1);
+    border-radius: 3px;
+    color: white;
+    font-weight: normal;
+    cursor: pointer;
+    
+    font-family: "Calibri";
+
+
+
+}
+
+/* Tooltip */
+button.copyBtn_coord::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+button.copyBtn_coord:hover::after {
+  opacity: 1;
+}

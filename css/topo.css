@@ -1,0 +1,249 @@
+        .topo {
+            display: flex;
+            justify-content: space-between;
+            background-color: #ffffff; /* Fundo branco */
+            padding: 10px;
+            color: black; /* Texto preto */
+	    height: 75px;
+	    align-items: center; /* Centraliza verticalmente */
+
+	    justify-content: center; /* Centraliza horizontalmente (opcional) */
+        }
+        .topo1, .topo2, .topo3, .topo4, .topo5, .topo6, .topo7 {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+	    align-items: center; /* Centraliza verticalmente */
+
+	    justify-content: center; /* Centraliza horizontalmente (opcional) */
+text-transform: uppercase;
+   
+
+        }
+
+
+.topo7 {
+    display: flex; /* Torna o contêiner flexível */
+    justify-content: center; /* Centraliza as divs horizontalmente */
+}
+.sol {
+	
+	margin: 0px 30px 0px 0px; /* Adiciona espaço entre as divs */
+	padding: 0 20px; /* Adiciona espaço interno */
+	width: 20%;
+	color: #2c6e99; /* Cor da fonte */
+	font-size: 14px;
+	justify-content: center; /* Centraliza horizontalmente */
+	align-items: center;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+input:focus {
+    outline:none;
+}
+
+input[type=text] {
+    background: #ededed;
+    padding: 5px 1px 5px 1px;
+    border: 1px solid rgba(0,0,0,.1);
+    border-radius: 3px;
+    color: #2c6e99;
+    font-weight: bold;
+    width: 164px;
+    heigth: 5px;
+    
+}
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #aeafb0;
+  opacity: 1; /* Firefox */
+  font-size:11px;
+  font-weight: normal;
+  font-style: italic;
+}
+.button_ad {
+    background: url("../arq/aw.png") no-repeat;
+    display: inline-block;
+    padding-top: 13px;
+    padding-bottom: 16px;
+    padding-righ: 16px;
+    color: white;
+    width: 16px;
+    cursor: pointer;
+    border: 0px;
+
+}
+
+.button_mat {
+    background: url("../arq/anac.png") no-repeat;
+    display: inline-block;
+    padding-top: 13px;
+    padding-bottom: 16px;
+    padding-righ: 16px;
+    color: white;
+    width: 16px;
+    cursor: pointer;
+    border: 0px;
+}
+
+.button_publ {
+    background: url("../arq/publ.png") no-repeat;
+    display: inline-block;
+    padding-top: 13px;
+    padding-bottom: 16px;
+    padding-righ: 16px;
+    color: white;
+    width: 16px;
+    cursor: pointer;
+    border: 0px;
+}
+.button_fr {
+    background: url("../arq/fr.png") no-repeat;
+    display: inline-block;
+    padding-top: 13px;
+    padding-bottom: 16px;
+    padding-righ: 16px;
+    color: white;
+    width: 16px;
+    cursor: pointer;
+    border: 0px;
+}
+
+.button_refresh {
+    background: #2c6e99;
+    padding: 0px 5px 0px 5px;
+    border: 1px solid rgba(0,0,0,.1);
+    border-radius: 3px;
+    color: white;
+    font-weight: normal;
+    cursor: pointer;
+    font-size:16px;
+    font-family: "Calibri";
+    margin-bottom: 1px;
+}
+
+
+
+
+.result {
+    font-size: 14px;
+    color: #2c6e99;
+    display: none;
+    font-weight: normal;
+    width: 100%;
+    max-width: 300px;
+    position: absolute;
+    top: 60px;
+    left: 203px;
+    text-align: center;
+
+    white-space: nowrap;      /* Não quebrar linha */
+    overflow: visible;        /* Permitir "vazar" para fora */
+    max-width: none;          /* Remove o limite de 300px */
+    width: auto;              /* Deixa a largura se ajustar ao conteúdo */
+}
+
+
+
+
+
+
+.result_anac {
+  
+  
+    position: absolute; /* Garante que o conteúdo não empurre outros elementos */
+       width: 13%; /* Define a largura do elemento em porcentagem */
+    margin: 0 auto; /* Centraliza o elemento horizontalmente */
+padding-top: 3px;
+
+
+   
+}
+
+.result_anac div {
+
+    font-size: 14px;
+    color: #2c6e99;
+    font-weight: normal;
+    text-transform: none;
+text-align: center;
+align-items: center;
+}
+
+
+
+#loading {
+    position: absolute;
+    top: 75px;
+    left: 580px;
+    transform: translate(-50%, -50%); /* Centraliza o gif */
+    display: none; /* Inicialmente escondido */
+    z-index: 10; /* Garante que o gif fique sobre os outros elementos */
+}
+
+#search-container {
+
+    
+}
+
+
+
+
+.map {
+    position: absolute; /* Faz a div flutuar */
+    top: calc(60px + 40px); /* Posiciona abaixo da div 'result' */
+    left: 203px; /* Alinha com a div 'result' */
+    width: 300px; /* Largura definida */
+    background-color: #d3d3d3; /* Fundo cinza */
+    color: #555555; /* Cor do texto cinza escuro */
+    padding: 10px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    z-index: 5; /* Garante que a div fique acima de outros elementos, mas abaixo de 'result' */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Sombra suave para destacar */
+    display: block; /* Define para ser visível */
+}
+
+.map p {
+    margin: 0;
+    padding: 0;
+}
+#map {
+    display: none;
+    position: absolute;
+    top: 60px;  /* Ajuste a posição conforme necessário */
+    left: 0;
+    width: 846px;  /* Largura de 300px */
+    height: 531px;  /* Altura de 300px */
+    margin-top: 92px;
+    margin-left: 10px;
+    padding-top: 100px;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+    color: #666;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    z-index: 100;
+    overflow: hidden;
+}
+        
+.leaflet-tooltip {
+            background-color: white;
+            border-radius: 3px;
+            padding: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            color: black;
+        }
+
+
