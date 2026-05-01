@@ -30,7 +30,7 @@ async function buscarAeronavesProximas() {
     const [lon, lat] = sbur;
     const raioNM = 70;
 
-    const apiUrl = `https://api.adsb.lol/v2/point/${lat}/${lon}/${raioNM}`;
+const API_URL = "https://bc.carlos-gomes-299.workers.dev/";
 
     imagemCarregamento.style.display = 'block';
 
