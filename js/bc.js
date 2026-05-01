@@ -3,6 +3,7 @@ const declinacaoSBUR = -22;
 
 const resultadoTable = document.getElementById('resultado-table');
 const resultadoTableBody = document.getElementById('resultado-table-body');
+const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento.querySelector('img');
 
@@ -29,7 +30,9 @@ const polygon = turf.polygon([polygonCoordinates]);
 
 async function buscarAeronavesProximas() {
 
-    const [lon, lat] = sbur;
+    const sburLongitude = sbur[0];
+    const sburLatitude = sbur[1];
+    const raioNM = 70;
 
     imagemCarregamento.style.display = 'block';
 
@@ -39,65 +42,88 @@ async function buscarAeronavesProximas() {
         const data = await response.json();
 
         const ac = data.ac || [];
+
+        if (!ac.length) {
+            mensagemCarregamento.textContent = 'NIL';
+            imagemCarregamento.style.display = 'none';
+            resultadoTable.style.display = 'none';
+            return;
+        }
+
         const aircraftData = [];
 
-        ac.forEach(a => {
+        ac.forEach(aircraft => {
 
-            const latitude = a.lat;
-            const longitude = a.lon;
+            const latitude = aircraft.lat;
+            const longitude = aircraft.lon;
 
             let dentroPoligono = false;
 
-            if (latitude && longitude) {
+            if (latitude != null && longitude != null) {
                 const point = turf.point([longitude, latitude]);
                 dentroPoligono = turf.booleanPointInPolygon(point, polygon);
             }
 
-            const identifier = a.flight?.trim() || a.r || '------';
-            const altitude = a.alt_baro ? Math.round(a.alt_baro) : '';
-            const speed = a.gs ? Math.round(a.gs) : '';
-            const heading = a.track;
-            const type = (a.t || '').replace("adsb_icao", "----");
-            const squawk = a.squawk || '----';
+            const callsign = aircraft.flight || '';
+            const registration = aircraft.r || '';
+            const identifier = callsign || registration || '------';
 
-            let distanciaNM = Infinity;
-            let radial = '---';
-            let rumoMag = null;
+            const altitudePes = aircraft.alt_baro != null ? Math.round(aircraft.alt_baro) : '';
+            const velocidadeKnots = aircraft.gs != null ? Math.round(aircraft.gs) : '';
+            const heading = aircraft.track != null ? Math.round(aircraft.track) : null;
 
-            if (latitude && longitude) {
+            const aircraftType = (aircraft.t || aircraft.type || '').replace("adsb_icao", "----");
+            const squawkCode = aircraft.squawk || '----';
+
+            let radialSburStr = '---';
+            let distanciaSburNM = Infinity;
+            let rumoMagneticCalcStr = '---';
+
+            if (latitude != null && longitude != null) {
 
                 const aircraftPoint = turf.point([longitude, latitude]);
-                const sburPoint = turf.point([lon, lat]);
+                const sburPoint = turf.point([sburLongitude, sburLatitude]);
 
-                const bearing = turf.bearing(sburPoint, aircraftPoint);
+                const bearingTrue = turf.bearing(sburPoint, aircraftPoint);
 
-                radial = Math.round((bearing - declinacaoSBUR + 360) % 360)
+                radialSburStr = Math.round((bearingTrue - declinacaoSBUR + 360) % 360)
                     .toString().padStart(3, '0');
 
-                const distKM = turf.distance(sburPoint, aircraftPoint);
-                distanciaNM = distKM * 0.539957;
+                const distanceKM = turf.distance(sburPoint, aircraftPoint, { units: 'kilometers' });
+                distanciaSburNM = distanceKM * 0.539957;
 
                 if (heading != null && !isNaN(heading)) {
-                    rumoMag = Math.round((heading + 22 + 360) % 360);
+                    rumoMagneticCalcStr = Math.round((heading + 22 + 360) % 360)
+                        .toString().padStart(3, '0');
                 }
             }
 
-            let fl = '----';
-            if (altitude !== '') {
-                const flNum = Math.floor(altitude / 100);
-                fl = 'F' + flNum.toString().padStart(3, '0');
+            let flStr = '----';
+            let flightLevel = null;
+
+            if (altitudePes !== '') {
+                flightLevel = Math.floor(altitudePes / 100);
+                let flStrTemp = flightLevel.toString().padStart(3, '0');
+
+                if (flStrTemp[2] === '9') {
+                    flightLevel = Math.ceil(flightLevel / 10) * 10;
+                    flStrTemp = flightLevel.toString().padStart(3, '0');
+                }
+
+                flStr = 'F' + flStrTemp;
             }
 
             aircraftData.push({
                 identifier,
-                type,
-                altitude: fl,
-                speed,
-                squawk,
-                radial,
-                distanciaNM,
+                aircraftType,
+                altitude: flStr,
+                velocidade: velocidadeKnots || '---',
+                squawkCode,
+                radial: 'URB' + radialSburStr + '°',
+                distanciaNM: distanciaSburNM,
                 dentroPoligono,
-                rumoMag
+                flightLevel,
+                rumoMagnetic: rumoMagneticCalcStr
             });
         });
 
@@ -105,39 +131,53 @@ async function buscarAeronavesProximas() {
 
         resultadoTableBody.innerHTML = '';
 
-        aircraftData.forEach(a => {
+        aircraftData.forEach(aircraft => {
 
             const row = resultadoTableBody.insertRow();
 
-            const idCell = row.insertCell();
-            idCell.textContent = a.identifier;
+            // COLUNA 1
+            const identifierCell = row.insertCell();
+            identifierCell.textContent = aircraft.identifier;
 
-            if (a.dentroPoligono && a.altitude.startsWith('F') && parseInt(a.altitude.slice(1)) <= 195) {
-                idCell.classList.add('dentro-poligono-e-abaixo-f195');
+            const altitudeNaTabela = aircraft.altitude;
+            const nivelDeVooAbaixoDe195 =
+                altitudeNaTabela.startsWith('F') &&
+                parseInt(altitudeNaTabela.substring(1)) <= 195;
+
+            if (aircraft.dentroPoligono && nivelDeVooAbaixoDe195) {
+                identifierCell.classList.add('dentro-poligono-e-abaixo-f195');
             }
 
-            row.insertCell().textContent = a.type;
-            row.insertCell().textContent = a.altitude;
-            row.insertCell().textContent = a.speed + 'KT';
-            row.insertCell().textContent = a.squawk;
-            row.insertCell().textContent = a.radial;
-            row.insertCell().textContent = isFinite(a.distanciaNM) ? a.distanciaNM.toFixed(0) + 'NM' : '---';
+            // COLUNA 2 (MANTIDA ORIGINAL)
+            row.insertCell().textContent = aircraft.aircraftType;
 
-            // ✔ COLUNA RM CORRIGIDA
-            const rmCell = row.insertCell();
-            rmCell.textContent = (a.rumoMag != null)
-                ? `RM${String(a.rumoMag).padStart(3, '0')}°`
-                : 'RM---°';
+            row.insertCell().textContent = altitudeNaTabela;
+            row.insertCell().textContent = aircraft.velocidade + 'KT';
+            row.insertCell().textContent = aircraft.squawkCode;
+            row.insertCell().textContent = aircraft.radial;
+            row.insertCell().textContent =
+                isFinite(aircraft.distanciaNM)
+                    ? aircraft.distanciaNM.toFixed(0) + 'NM'
+                    : '---NM';
 
+            // RM (COLUNA ORIGINAL RESTAURADA)
+            row.insertCell().textContent =
+                'RM' + aircraft.rumoMagnetic + '°';
+
+            // avião
             const planeCell = row.insertCell();
-            const img = document.createElement('img');
-            img.src = 'arq/plane.png';
-            img.width = 16;
-            img.height = 16;
-            img.style.transform = (a.rumoMag != null)
-                ? `rotate(${a.rumoMag - 22}deg)`
-                : `rotate(0deg)`;
-            planeCell.appendChild(img);
+            const planeImg = document.createElement('img');
+            planeImg.src = 'arq/plane.png';
+            planeImg.width = 16;
+            planeImg.height = 16;
+
+            planeImg.style.transformOrigin = 'center';
+            planeImg.style.transform =
+                aircraft.rumoMagnetic !== '---'
+                    ? `rotate(${aircraft.rumoMagnetic - 22}deg)`
+                    : 'rotate(0deg)';
+
+            planeCell.appendChild(planeImg);
         });
 
         resultadoTable.style.display = 'table';
