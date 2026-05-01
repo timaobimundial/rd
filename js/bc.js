@@ -126,7 +126,10 @@ async function buscarAeronavesProximas() {
             row.insertCell().textContent = a.squawk;
             row.insertCell().textContent = a.radial;
             row.insertCell().textContent = isFinite(a.distanciaNM) ? a.distanciaNM.toFixed(0) + 'NM' : '---';
-            row.insertCell().textContent = 'RM' + a.rumoMag + '°';
+const rmCell = row.insertCell();
+rmCell.textContent = (a.rumoMag !== '---' && a.rumoMag != null)
+    ? `RM${String(a.rumoMag).padStart(3, '0')}°`
+    : 'RM---°';
 
             const planeCell = row.insertCell();
             const img = document.createElement('img');
