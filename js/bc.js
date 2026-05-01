@@ -6,7 +6,6 @@ const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento ? mensagemCarregamento.querySelector('img') : null;
 
-// Definição do polígono a partir das coordenadas fornecidas
 const polygonCoordinates = [
     [-48.596667, -20.576667], 
     [-48.028056, -20.553611], 
@@ -30,23 +29,19 @@ async function buscarAeronavesProximas() {
     const sburLatitude = sbur[1];
     const raioNM = 70; 
     
-    // Prefixando com o Proxy CORS para evitar o erro de bloqueio do navegador
-    const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+    // Trocando para o proxy AllOrigins que é mais transparente
     const targetUrl = `https://api.adsb.lol/v2/point/${sburLatitude}/${sburLongitude}/${raioNM}`;
-    const apiUrl = proxyUrl + targetUrl;
+    const apiUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
     if (imagemCarregamento) imagemCarregamento.style.display = 'block';
 
     try {
-        const response = await fetch(apiUrl, {
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
-            }
-        });
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error("Erro na rede");
         
-        if (!response.ok) throw new Error("Erro na requisição (CORS ou API)");
-
-        const data = await response.json();
+        const wrapper = await response.json();
+        // O AllOrigins retorna o JSON da API dentro do campo 'contents' como string
+        const data = JSON.parse(wrapper.contents);
 
         if (data && data.ac && Array.isArray(data.ac) && data.ac.length > 0) {
             const aircraftData = [];
@@ -163,7 +158,7 @@ async function buscarAeronavesProximas() {
 
     } catch (error) {
         console.error("Erro ao buscar aeronaves:", error);
-        if (mensagemCarregamento) mensagemCarregamento.textContent = 'Erro de Conexão/Acesso';
+        if (mensagemCarregamento) mensagemCarregamento.textContent = 'Erro de Conexão';
         resultadoTable.style.display = 'none';
         if (imagemCarregamento) imagemCarregamento.style.display = 'none';
     }
