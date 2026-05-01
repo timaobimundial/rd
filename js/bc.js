@@ -35,7 +35,7 @@ async function buscarAeronavesProximas() {
     const lat2 = -17.6;
     const lon2 = -46.7;
 
-const apiUrl = "https://api.allorigins.win/raw?url=https://api.adsb.lol/v2/lat/-21.2/-51/-17.6/-46.7";
+const apiUrl = "https://bc.carlos-gomes-299.workers.dev/";
 
     imagemCarregamento.style.display = 'block';
 
