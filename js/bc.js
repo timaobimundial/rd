@@ -28,7 +28,10 @@ const polygon = turf.polygon([polygonCoordinates]);
 
 async function buscarAeronavesProximas() {
 
-    const url = "https://opensky-network.org/api/states/all";
+const apiUrl = "https://bc-adsb.carlos-gomes-299.workers.dev/";
+
+const response = await fetch(apiUrl);
+const data = await response.json();
 
     imagemCarregamento.style.display = 'block';
 
