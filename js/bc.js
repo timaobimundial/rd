@@ -28,7 +28,7 @@ const polygon = turf.polygon([polygonCoordinates]);
 async function buscarAeronavesProximas() {
     const sburLongitude = sbur[0];
     const sburLatitude = sbur[1];
-    const raioNM = 570; // Raio de busca em NM
+    const raioNM = 70; // Raio de busca em NM
     const apiUrl = `https://bc.carlos-gomes-299.workers.dev/?lat=${sburLatitude}&lon=${sburLongitude}&raio=${raioNM}`;
 
     // Exibe o GIF de carregamento
