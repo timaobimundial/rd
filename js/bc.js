@@ -31,7 +31,7 @@ async function buscarAeronavesProximas() {
     const raioNM = 70;
 
     // 🔥 AGORA USANDO SEU WORKER
-    const apiUrl = `https://bc.carlos-gomes-299.workers.dev/`;
+    const apiUrl = `https://bc-adsb.carlos-gomes-299.workers.dev/`;
 
     imagemCarregamento.style.display = 'block';
 
