@@ -1,12 +1,13 @@
 const sbur = [-47.958611, -19.794722]; // [longitude, latitude] de SBUR
 const declinacaoSBUR = -22;
+
 const resultadoTable = document.getElementById('resultado-table');
 const resultadoTableBody = document.getElementById('resultado-table-body');
 const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento.querySelector('img');
 
-// Definição do polígono a partir das coordenadas fornecidas
+// Polígono
 const polygonCoordinates = [
     [-48.596667, -20.576667],
     [-48.028056, -20.553611],
@@ -27,27 +28,25 @@ const polygon = turf.polygon([polygonCoordinates]);
 
 async function buscarAeronavesProximas() {
 
-    const sburLongitude = sbur[0];
-    const sburLatitude = sbur[1];
+    const raioNM = 70;
 
-    const lat1 = -21.2;
-    const lon1 = -51.0;
-    const lat2 = -17.6;
-    const lon2 = -46.7;
-
-const apiUrl = "https://bc.carlos-gomes-299.workers.dev/";
+    // 🔥 AGORA USANDO SEU WORKER
+    const apiUrl = `https://bc.carlos-gomes-299.workers.dev/`;
 
     imagemCarregamento.style.display = 'block';
 
     try {
+
         const response = await fetch(apiUrl);
         const data = await response.json();
 
-        if (data && data.ac && Array.isArray(data.ac) && data.ac.length > 0) {
+        const aircraftList = data.ac || [];
+
+        if (aircraftList.length > 0) {
 
             const aircraftData = [];
 
-            data.ac.forEach(aircraft => {
+            aircraftList.forEach(aircraft => {
 
                 const latitude = aircraft.lat;
                 const longitude = aircraft.lon;
@@ -79,17 +78,15 @@ const apiUrl = "https://bc.carlos-gomes-299.workers.dev/";
                     const sburPoint = turf.point(sbur);
 
                     const bearingTrue = turf.bearing(sburPoint, aircraftPoint);
-                    const radialMagnetic = (bearingTrue - declinacaoSBUR + 360) % 360;
 
+                    const radialMagnetic = (bearingTrue - declinacaoSBUR + 360) % 360;
                     radialSburStr = Math.round(radialMagnetic).toString().padStart(3, '0');
 
                     const distanceKM = turf.distance(sburPoint, aircraftPoint, { units: 'kilometers' });
                     distanciaSburNM = distanceKM * 0.539957;
 
                     const headingMagnetic = (heading + 22 + 360) % 360;
-                    rumoMagneticCalcStr = heading !== null
-                        ? Math.round(headingMagnetic).toString().padStart(3, '0')
-                        : '---';
+                    rumoMagneticCalcStr = heading !== null ? Math.round(headingMagnetic).toString().padStart(3, '0') : '---';
                 }
 
                 let flStr = '';
@@ -115,8 +112,8 @@ const apiUrl = "https://bc.carlos-gomes-299.workers.dev/";
                     squawkCode,
                     radial: 'URB' + radialSburStr + '°',
                     distanciaNM: distanciaSburNM,
-                    dentroPoligono: dentroPoligono,
-                    flightLevel: flightLevel,
+                    dentroPoligono,
+                    flightLevel,
                     rumoMagnetic: rumoMagneticCalcStr
                 });
             });
@@ -156,11 +153,13 @@ const apiUrl = "https://bc.carlos-gomes-299.workers.dev/";
 
                 const planeCell = row.insertCell();
                 const planeImg = document.createElement('img');
+
                 planeImg.src = 'arq/plane.png';
                 planeImg.width = 16;
                 planeImg.height = 16;
                 planeImg.style.transformOrigin = 'center';
                 planeImg.style.transform = `rotate(${aircraft.rumoMagnetic - 22}deg)`;
+
                 planeCell.appendChild(planeImg);
             });
 
