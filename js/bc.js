@@ -28,20 +28,17 @@ const polygon = turf.polygon([polygonCoordinates]);
 
 async function buscarAeronavesProximas() {
 
-const apiUrl = "https://bc-adsb.carlos-gomes-299.workers.dev/";
-
-const response = await fetch(apiUrl);
-const data = await response.json();
+    const apiUrl = "https://bc-adsb.carlos-gomes-299.workers.dev/";
 
     imagemCarregamento.style.display = 'block';
 
     try {
 
-        const response = await fetch(url);
+        const response = await fetch(apiUrl);
         const data = await response.json();
 
         if (!data || !data.states) {
-            throw new Error("Sem dados OpenSky");
+            throw new Error("Sem dados");
         }
 
         const aircraftData = [];
@@ -56,14 +53,10 @@ const data = await response.json();
                 last_contact,
                 longitude,
                 latitude,
-                baro_altitude,
+                altitude,
                 on_ground,
                 velocity,
-                true_track,
-                vertical_rate,
-                sensors,
-                geo_altitude,
-                squawk
+                heading
             ] = ac;
 
             let dentroPoligono = false;
@@ -74,10 +67,9 @@ const data = await response.json();
             }
 
             const identifier = (callsign || icao24 || "------").trim();
-            const altitudePes = baro_altitude ? Math.round(baro_altitude) : '';
-            const velocidadeKnots = velocity ? Math.round(velocity) : '';
-            const heading = true_track != null ? Math.round(true_track) : '';
-            const squawkCode = squawk || '----';
+            const altitudePes = altitude != null ? Math.round(altitude) : '';
+            const velocidadeKnots = velocity != null ? Math.round(velocity) : '';
+            const track = heading != null ? Math.round(heading) : '';
 
             let radialSburStr = '---';
             let distanciaSburNM = Infinity;
@@ -96,16 +88,15 @@ const data = await response.json();
                 const distanceKM = turf.distance(sburPoint, aircraftPoint, { units: 'kilometers' });
                 distanciaSburNM = distanceKM * 0.539957;
 
-                const headingMagnetic = (heading + 22 + 360) % 360;
-                rumoMagneticCalcStr = heading !== null ? Math.round(headingMagnetic).toString().padStart(3, '0') : '---';
+                const headingMagnetic = (track + 22 + 360) % 360;
+                rumoMagneticCalcStr = track !== null ? Math.round(headingMagnetic).toString().padStart(3, '0') : '---';
             }
 
             let flStr = '';
-            let flightLevel = null;
 
             if (altitudePes !== '') {
-                flightLevel = Math.floor(altitudePes / 100);
-                flStr = 'F' + flightLevel.toString().padStart(3, '0');
+                const fl = Math.floor(altitudePes / 100);
+                flStr = 'F' + fl.toString().padStart(3, '0');
             }
 
             aircraftData.push({
@@ -113,7 +104,7 @@ const data = await response.json();
                 aircraftType: "----",
                 altitude: flStr || '----',
                 velocidade: velocidadeKnots || '---',
-                squawkCode,
+                squawkCode: "----",
                 radial: 'URB' + radialSburStr + '°',
                 distanciaNM: distanciaSburNM,
                 dentroPoligono,
@@ -164,7 +155,7 @@ const data = await response.json();
         imagemCarregamento.style.display = 'none';
 
     } catch (error) {
-        console.error("Erro OpenSky:", error);
+        console.error("Erro:", error);
         mensagemCarregamento.textContent = 'Erro';
         resultadoTable.style.display = 'none';
         imagemCarregamento.style.display = 'none';
