@@ -4,9 +4,9 @@ const resultadoTable = document.getElementById('resultado-table');
 const resultadoTableBody = document.getElementById('resultado-table-body');
 const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
-const imagemCarregamento = mensagemCarregamento.querySelector('img'); // ObtÃ©m a tag <img> dentro da div de carregamento
+const imagemCarregamento = mensagemCarregamento.querySelector('img'); // Obtém a tag <img> dentro da div de carregamento
 
-// DefiniÃ§Ã£o do polÃ­gono a partir das coordenadas fornecidas
+// Definição do polígono a partir das coordenadas fornecidas
 const polygonCoordinates = [
     [-48.596667, -20.576667], // 203456S 0483548W (convertido para [lon, lat])
     [-48.028056, -20.553611], // 203313S 0480141W
@@ -29,7 +29,7 @@ async function buscarAeronavesProximas() {
     const sburLongitude = sbur[0];
     const sburLatitude = sbur[1];
     const raioNM = 70; // Raio de busca em NM
-    const apiUrl = `https://bc.carlos-gomes-299.workers.dev/?lat=${sburLatitude}&lon=${sburLongitude}&raio=${raioNM}`;
+    const apiUrl = `https://api.adsb.one/v2/point/${sburLatitude}/${sburLongitude}/${raioNM}`;
 
     // Exibe o GIF de carregamento
     imagemCarregamento.style.display = 'block';
@@ -67,12 +67,12 @@ async function buscarAeronavesProximas() {
                     const aircraftPoint = turf.point([longitude, latitude]);
                     const sburPoint = turf.point(sbur);
                     const bearingTrue = turf.bearing(sburPoint, aircraftPoint);
-                    // Aplica o ajuste de +22Âº no cÃ¡lculo do rumo magnÃ©tico
+                    // Aplica o ajuste de +22º no cálculo do rumo magnético
                     const radialMagnetic = (bearingTrue - declinacaoSBUR + 360) % 360;
                     radialSburStr = Math.round(radialMagnetic).toString().padStart(3, '0');
                     const distanceKM = turf.distance(sburPoint, aircraftPoint, { units: 'kilometers' });
                     distanciaSburNM = distanceKM * 0.539957;
-                    // Calcula o rumo magnÃ©tico com o ajuste
+                    // Calcula o rumo magnético com o ajuste
                     const headingMagnetic = (heading + 22 + 360) % 360;
                     rumoMagneticCalcStr = heading !== null ? Math.round(headingMagnetic).toString().padStart(3, '0') : '---';
                 }
@@ -99,11 +99,11 @@ async function buscarAeronavesProximas() {
                     distanciaNM: distanciaSburNM,
                     dentroPoligono: dentroPoligono,
                     flightLevel: flightLevel,
-                    rumoMagnetic: rumoMagneticCalcStr // Salva o rumo magnÃ©tico calculado
+                    rumoMagnetic: rumoMagneticCalcStr // Salva o rumo magnético calculado
                 });
             });
 
-            // Ordena o array de aeronaves pela distÃ¢ncia (crescente)
+            // Ordena o array de aeronaves pela distância (crescente)
             aircraftData.sort((a, b) => a.distanciaNM - b.distanciaNM);
 
             // Limpa o corpo da tabela
@@ -126,15 +126,15 @@ async function buscarAeronavesProximas() {
                 row.insertCell().textContent = aircraft.squawkCode;
                 row.insertCell().textContent = aircraft.radial;
                 row.insertCell().textContent = isFinite(aircraft.distanciaNM) ? aircraft.distanciaNM.toFixed(0) + 'NM' : '---NM';
-                row.insertCell().textContent = 'RM' + aircraft.rumoMagnetic + '\u00B0'; // Ãšltima coluna com "RMxxxÂº"
-		// Adiciona a cÃ©lula do aviÃ£ozinho
+                row.insertCell().textContent = 'RM' + aircraft.rumoMagnetic + '\u00B0'; // Última coluna com "RMxxxº"
+		// Adiciona a célula do aviãozinho
 const planeCell = row.insertCell();
 const planeImg = document.createElement('img');
 planeImg.src = 'arq/plane.png'; // caminho relativo correto
 planeImg.width = 16;
 planeImg.height = 16;
 planeImg.style.transformOrigin = 'center';
-// gira para o rumo correto considerando 022Â° como norte do PNG
+// gira para o rumo correto considerando 022° como norte do PNG
 planeImg.style.transform = `rotate(${aircraft.rumoMagnetic - 22}deg)`;
 planeCell.appendChild(planeImg);
 
@@ -146,15 +146,15 @@ planeCell.appendChild(planeImg);
 
         } else {
             mensagemCarregamento.textContent = 'NIL';
-            resultadoTable.style.display = 'none'; // Oculta a tabela se nÃ£o houver dados
-            imagemCarregamento.style.display = 'none'; // Oculta o GIF tambÃ©m
+            resultadoTable.style.display = 'none'; // Oculta a tabela se não houver dados
+            imagemCarregamento.style.display = 'none'; // Oculta o GIF também
         }
 
     } catch (error) {
         console.error("Erro ao buscar aeronaves:", error);
         mensagemCarregamento.textContent = 'Erro';
         resultadoTable.style.display = 'none'; // Oculta a tabela em caso de erro
-        imagemCarregamento.style.display = 'none'; // Oculta o GIF tambÃ©m
+        imagemCarregamento.style.display = 'none'; // Oculta o GIF também
     }
 }
 
