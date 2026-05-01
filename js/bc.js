@@ -35,7 +35,7 @@ async function buscarAeronavesProximas() {
     const lat2 = -17.6;
     const lon2 = -46.7;
 
-    const apiUrl = `https://api.adsb.lol/v2/lat/${lat1}/${lon1}/${lat2}/${lon2}`;
+const apiUrl = "https://corsproxy.io/?https://api.adsb.lol/v2/lat/-21.2/-51/-17.6/-46.7";
 
     imagemCarregamento.style.display = 'block';
 
