@@ -6,6 +6,9 @@ const resultadoTableBody = document.getElementById('resultado-table-body');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento.querySelector('img');
 
+// Worker (fonte única correta)
+const API_URL = "https://bc.carlos-gomes-299.workers.dev/";
+
 // polígono SBUR
 const polygonCoordinates = [
     [-48.596667, -20.576667],
@@ -30,17 +33,15 @@ async function buscarAeronavesProximas() {
     const [lon, lat] = sbur;
     const raioNM = 70;
 
-const API_URL = "https://bc.carlos-gomes-299.workers.dev/";
-
     imagemCarregamento.style.display = 'block';
 
     try {
 
-        const response = await fetch(apiUrl);
+        // 🔧 CORREÇÃO AQUI (era apiUrl)
+        const response = await fetch(API_URL);
         const data = await response.json();
 
         const ac = data.ac || [];
-
         const aircraftData = [];
 
         ac.forEach(a => {
@@ -72,6 +73,7 @@ const API_URL = "https://bc.carlos-gomes-299.workers.dev/";
                 const sburPoint = turf.point([lon, lat]);
 
                 const bearing = turf.bearing(sburPoint, aircraftPoint);
+
                 radial = Math.round((bearing - declinacaoSBUR + 360) % 360)
                     .toString().padStart(3, '0');
 
