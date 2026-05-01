@@ -6,7 +6,6 @@ const resultadoTableBody = document.getElementById('resultado-table-body');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento.querySelector('img');
 
-// Worker (fonte única correta)
 const API_URL = "https://bc.carlos-gomes-299.workers.dev/";
 
 // polígono SBUR
@@ -31,13 +30,11 @@ const polygon = turf.polygon([polygonCoordinates]);
 async function buscarAeronavesProximas() {
 
     const [lon, lat] = sbur;
-    const raioNM = 70;
 
     imagemCarregamento.style.display = 'block';
 
     try {
 
-        // 🔧 CORREÇÃO AQUI (era apiUrl)
         const response = await fetch(API_URL);
         const data = await response.json();
 
@@ -59,13 +56,13 @@ async function buscarAeronavesProximas() {
             const identifier = a.flight?.trim() || a.r || '------';
             const altitude = a.alt_baro ? Math.round(a.alt_baro) : '';
             const speed = a.gs ? Math.round(a.gs) : '';
-            const heading = a.track ? Math.round(a.track) : '';
+            const heading = a.track;
             const type = (a.t || '').replace("adsb_icao", "----");
             const squawk = a.squawk || '----';
 
             let distanciaNM = Infinity;
             let radial = '---';
-            let rumoMag = '---';
+            let rumoMag = null;
 
             if (latitude && longitude) {
 
@@ -80,9 +77,8 @@ async function buscarAeronavesProximas() {
                 const distKM = turf.distance(sburPoint, aircraftPoint);
                 distanciaNM = distKM * 0.539957;
 
-                if (heading !== '') {
-                    rumoMag = Math.round((heading + 22 + 360) % 360)
-                        .toString().padStart(3, '0');
+                if (heading != null && !isNaN(heading)) {
+                    rumoMag = Math.round((heading + 22 + 360) % 360);
                 }
             }
 
@@ -126,17 +122,21 @@ async function buscarAeronavesProximas() {
             row.insertCell().textContent = a.squawk;
             row.insertCell().textContent = a.radial;
             row.insertCell().textContent = isFinite(a.distanciaNM) ? a.distanciaNM.toFixed(0) + 'NM' : '---';
-const rmCell = row.insertCell();
-rmCell.textContent = (a.rumoMag !== '---' && a.rumoMag != null)
-    ? `RM${String(a.rumoMag).padStart(3, '0')}°`
-    : 'RM---°';
+
+            // ✔ COLUNA RM CORRIGIDA
+            const rmCell = row.insertCell();
+            rmCell.textContent = (a.rumoMag != null)
+                ? `RM${String(a.rumoMag).padStart(3, '0')}°`
+                : 'RM---°';
 
             const planeCell = row.insertCell();
             const img = document.createElement('img');
             img.src = 'arq/plane.png';
             img.width = 16;
             img.height = 16;
-            img.style.transform = `rotate(${a.rumoMag - 22}deg)`;
+            img.style.transform = (a.rumoMag != null)
+                ? `rotate(${a.rumoMag - 22}deg)`
+                : `rotate(0deg)`;
             planeCell.appendChild(img);
         });
 
