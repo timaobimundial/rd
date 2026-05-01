@@ -29,19 +29,22 @@ async function buscarAeronavesProximas() {
     const sburLatitude = sbur[1];
     const raioNM = 70; 
     
-    // Trocando para o proxy AllOrigins que é mais transparente
-    const targetUrl = `https://api.adsb.lol/v2/point/${sburLatitude}/${sburLongitude}/${raioNM}`;
-    const apiUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+    // Mudança estratégica: usando a API de "States" filtrada por área para evitar bloqueios comuns em endpoints de "Point"
+    // Bounding box calculado para cobrir aprox. o raio de 70NM (aprox. 1.2 graus de margem)
+    const lamin = sburLatitude - 1.2;
+    const lomin = sburLongitude - 1.2;
+    const lamax = sburLatitude + 1.2;
+    const lomax = sburLongitude + 1.2;
+
+    const apiUrl = `https://api.adsb.lol/v2/box/${lamin}/${lamax}/${lomin}/${lomax}`;
 
     if (imagemCarregamento) imagemCarregamento.style.display = 'block';
 
     try {
         const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error("Erro na rede");
+        if (!response.ok) throw new Error("Erro CORS/Rede");
         
-        const wrapper = await response.json();
-        // O AllOrigins retorna o JSON da API dentro do campo 'contents' como string
-        const data = JSON.parse(wrapper.contents);
+        const data = await response.json();
 
         if (data && data.ac && Array.isArray(data.ac) && data.ac.length > 0) {
             const aircraftData = [];
@@ -97,18 +100,21 @@ async function buscarAeronavesProximas() {
                     flStr = 'F' + flStrTemp;
                 }
 
-                aircraftData.push({
-                    identifier,
-                    aircraftType,
-                    altitude: flStr || '----',
-                    velocidade: velocidadeKnots || '---',
-                    squawkCode,
-                    radial: 'URB' + radialSburStr + '°',
-                    distanciaNM: distanciaSburNM,
-                    dentroPoligono: dentroPoligono,
-                    flightLevel: flightLevel,
-                    rumoMagnetic: rumoMagneticCalcStr 
-                });
+                // Apenas adiciona se estiver dentro do raio original de 70NM (filtragem manual após o box)
+                if (distanciaSburNM <= raioNM) {
+                    aircraftData.push({
+                        identifier,
+                        aircraftType,
+                        altitude: flStr || '----',
+                        velocidade: velocidadeKnots || '---',
+                        squawkCode,
+                        radial: 'URB' + radialSburStr + '°',
+                        distanciaNM: distanciaSburNM,
+                        dentroPoligono: dentroPoligono,
+                        flightLevel: flightLevel,
+                        rumoMagnetic: rumoMagneticCalcStr 
+                    });
+                }
             });
 
             aircraftData.sort((a, b) => a.distanciaNM - b.distanciaNM);
@@ -158,7 +164,7 @@ async function buscarAeronavesProximas() {
 
     } catch (error) {
         console.error("Erro ao buscar aeronaves:", error);
-        if (mensagemCarregamento) mensagemCarregamento.textContent = 'Erro de Conexão';
+        if (mensagemCarregamento) mensagemCarregamento.textContent = 'Erro de Acesso';
         resultadoTable.style.display = 'none';
         if (imagemCarregamento) imagemCarregamento.style.display = 'none';
     }
