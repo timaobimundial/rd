@@ -4,7 +4,7 @@ const resultadoTable = document.getElementById('resultado-table');
 const resultadoTableBody = document.getElementById('resultado-table-body');
 const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
-const imagemCarregamento = mensagemCarregamento.querySelector('img');
+const imagemCarregamento = mensagemCarregamento ? mensagemCarregamento.querySelector('img') : null;
 
 // Definição do polígono a partir das coordenadas fornecidas
 const polygonCoordinates = [
@@ -29,16 +29,25 @@ async function buscarAeronavesProximas() {
     const sburLongitude = sbur[0];
     const sburLatitude = sbur[1];
     const raioNM = 70; 
-    // Nova URL utilizando a API ADSB.lol
-    const apiUrl = `https://api.adsb.lol/v2/point/${sburLatitude}/${sburLongitude}/${raioNM}`;
+    
+    // Prefixando com o Proxy CORS para evitar o erro de bloqueio do navegador
+    const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+    const targetUrl = `https://api.adsb.lol/v2/point/${sburLatitude}/${sburLongitude}/${raioNM}`;
+    const apiUrl = proxyUrl + targetUrl;
 
     if (imagemCarregamento) imagemCarregamento.style.display = 'block';
 
     try {
-        const response = await fetch(apiUrl);
+        const response = await fetch(apiUrl, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+        
+        if (!response.ok) throw new Error("Erro na requisição (CORS ou API)");
+
         const data = await response.json();
 
-        // ADSB.lol segue a estrutura data.ac para os estados das aeronaves
         if (data && data.ac && Array.isArray(data.ac) && data.ac.length > 0) {
             const aircraftData = [];
             data.ac.forEach(aircraft => {
@@ -138,7 +147,6 @@ async function buscarAeronavesProximas() {
                 planeImg.height = 16;
                 planeImg.style.transformOrigin = 'center';
                 
-                // Rotaciona considerando o rumo calculado
                 const rotation = aircraft.rumoMagnetic !== '---' ? (parseInt(aircraft.rumoMagnetic) - 22) : 0;
                 planeImg.style.transform = `rotate(${rotation}deg)`;
                 planeCell.appendChild(planeImg);
@@ -148,14 +156,14 @@ async function buscarAeronavesProximas() {
             if (imagemCarregamento) imagemCarregamento.style.display = 'none';
 
         } else {
-            mensagemCarregamento.textContent = 'NIL';
+            if (mensagemCarregamento) mensagemCarregamento.textContent = 'NIL';
             resultadoTable.style.display = 'none';
             if (imagemCarregamento) imagemCarregamento.style.display = 'none';
         }
 
     } catch (error) {
         console.error("Erro ao buscar aeronaves:", error);
-        mensagemCarregamento.textContent = 'Erro';
+        if (mensagemCarregamento) mensagemCarregamento.textContent = 'Erro de Conexão/Acesso';
         resultadoTable.style.display = 'none';
         if (imagemCarregamento) imagemCarregamento.style.display = 'none';
     }
