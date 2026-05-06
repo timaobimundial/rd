@@ -145,5 +145,4 @@
   });
 
   toggleClear();
-  busca.focus();
 })();
