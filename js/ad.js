@@ -65,7 +65,6 @@ async function fetchAeroportoInfo() {
     let latDest, lngDest;
     let resultHTML = "";
 
-    // ================= FIX =================
     if (icaoCode.length === 5) {
         const fix = getFix(icaoCode);
 
@@ -79,10 +78,9 @@ async function fetchAeroportoInfo() {
         latDest = fix.lat;
         lngDest = fix.lng;
 
-        resultHTML = `${icaoCode}`;
+        resultHTML = ""; // <-- aqui remove o texto do FIX
     }
 
-    // ================= AERODROMO =================
     if (icaoCode.length === 4) {
 
         const metarUrl = `https://api-redemet.decea.mil.br/mensagens/metar/${icaoCode}?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL`;
@@ -132,7 +130,6 @@ async function fetchAeroportoInfo() {
         }
     }
 
-    // ================= CALCULO =================
     const distance = haversineDistance(sbur, { lat: latDest, lng: lngDest });
     const trueBearing = calculateBearing(sbur, { lat: latDest, lng: lngDest });
     const declinacao = 22;
