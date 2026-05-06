@@ -23,7 +23,12 @@ function getFix(ident) {
   return fixes.find(f => f.ident === ident);
 }
 
+// 🔹 controle pra evitar corrida entre digitação
+let lastRequestId = 0;
+
 async function fetchAeroportoInfo() {
+
+    const requestId = ++lastRequestId;
 
     const icaoCode = document.getElementById("icaoCode").value.trim().toUpperCase();
 
@@ -74,9 +79,14 @@ async function fetchAeroportoInfo() {
             await fixesPromise;
         }
 
+        // 🔹 evita resposta antiga sobrescrever nova
+        if (requestId !== lastRequestId) return;
+
         const fix = getFix(icaoCode);
 
         if (!fix) {
+            if (requestId !== lastRequestId) return;
+
             document.getElementById("result").textContent = "FIX não encontrado";
             document.getElementById("result").style.display = "block";
             document.getElementById("map").style.display = "none";
@@ -110,6 +120,8 @@ async function fetchAeroportoInfo() {
             const response = await fetch(apiUrl);
             const data = await response.text();
 
+            if (requestId !== lastRequestId) return;
+
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(data, "text/xml");
 
@@ -139,12 +151,13 @@ async function fetchAeroportoInfo() {
         }
     }
 
-    // ================= CALCULO =================
     const distance = haversineDistance(sbur, { lat: latDest, lng: lngDest });
     const trueBearing = calculateBearing(sbur, { lat: latDest, lng: lngDest });
     const declinacao = 22;
     const magneticBearing = (parseInt(trueBearing) + declinacao) % 360;
     const formattedMagneticBearing = String(magneticBearing).padStart(3, '0');
+
+    if (requestId !== lastRequestId) return;
 
     document.getElementById("result").innerHTML = resultHTML;
     document.getElementById("result").style.display = "block";
