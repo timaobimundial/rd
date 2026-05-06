@@ -1,6 +1,7 @@
 let map;
 
 let fixes = [];
+let fixesLoaded = false;
 
 fetch('arq/waypoint.csv')
   .then(r => r.text())
@@ -15,6 +16,8 @@ fetch('arq/waypoint.csv')
         lng: parseFloat(lng)
       };
     });
+
+    fixesLoaded = true;
   });
 
 function getFix(ident) {
@@ -28,6 +31,10 @@ async function fetchAeroportoInfo() {
     if (icaoCode.length !== 4 && icaoCode.length !== 5) {
         document.getElementById("result").style.display = "none";
         document.getElementById("map").style.display = "none";
+        return;
+    }
+
+    if (icaoCode.length === 5 && !fixesLoaded) {
         return;
     }
 
@@ -78,7 +85,7 @@ async function fetchAeroportoInfo() {
         latDest = fix.lat;
         lngDest = fix.lng;
 
-        resultHTML = ""; // <-- aqui remove o texto do FIX
+        resultHTML = "";
     }
 
     if (icaoCode.length === 4) {
