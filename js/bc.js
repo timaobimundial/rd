@@ -28,11 +28,122 @@ const polygonCoordinates = [
 
 const polygon = turf.polygon([polygonCoordinates]);
 
+window.aircraftMap = null;
+
+function abrirMapaAeronave(aircraft) {
+
+    const mapDiv = document.getElementById('map');
+    const metarContainer = document.querySelector('.container_metar');
+
+    if (metarContainer) {
+        const rect = metarContainer.getBoundingClientRect();
+
+        mapDiv.style.display = 'block';
+        mapDiv.style.position = 'fixed';
+        mapDiv.style.top = rect.top + 'px';
+        mapDiv.style.left = rect.left + 'px';
+        mapDiv.style.width = rect.width + 'px';
+        mapDiv.style.height = rect.height + 'px';
+        mapDiv.style.margin = '0';
+        mapDiv.style.padding = '0';
+        mapDiv.style.zIndex = '9999';
+    }
+
+    if (window.aircraftMap) {
+        window.aircraftMap.remove();
+    }
+
+    window.aircraftMap = L.map('map', {
+        scrollWheelZoom: true
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(window.aircraftMap);
+
+    const polygonLatLng = polygonCoordinates.map(c => [c[1], c[0]]);
+
+    L.polygon(polygonLatLng, {
+        color: 'gray',
+        fillColor: 'lightgray',
+        fillOpacity: 0.5,
+        weight: 0.5
+    }).addTo(window.aircraftMap);
+
+    const rotation =
+        aircraft.rumoMagnetic !== '---'
+            ? parseInt(aircraft.rumoMagnetic) - 22
+            : 0;
+
+    const planeIcon = L.divIcon({
+        className: 'plane-div-icon',
+        html: `
+            <img src="arq/planebcmap.png"
+        style="
+   
+            transform: rotate(${rotation}deg);
+            transform-origin:center;
+        ">
+        `,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+    });
+
+    const planeMarker = L.marker(
+        [aircraft.latitude, aircraft.longitude],
+        { icon: planeIcon }
+    ).addTo(window.aircraftMap);
+
+    planeMarker.bindTooltip(aircraft.identifier, {
+        permanent: true,
+        direction: "top",
+        offset: [0, -15]
+    });
+
+    const markerSBUR = L.marker([sbur[1], sbur[0]]).addTo(window.aircraftMap);
+
+    const tooltipContent =
+        `SBUR<br>
+        <span style="display:inline-block;width:50%;text-align:left">
+        ${aircraft.radial.replace('URB', '').replace('°', '')}°
+        </span>
+        <span style="display:inline-block;width:50%;text-align:right">
+        ${aircraft.distanciaNM.toFixed(0)}NM
+        </span>`;
+
+    markerSBUR.bindTooltip(tooltipContent, {
+        permanent: true,
+        direction: "top",
+        offset: [0, -15]
+    });
+
+    L.polyline(
+        [
+            [sbur[1], sbur[0]],
+            [aircraft.latitude, aircraft.longitude]
+        ],
+        { color: '#7fb0d4' }
+    ).addTo(window.aircraftMap);
+
+    const bounds = L.latLngBounds([
+        [sbur[1], sbur[0]],
+        [aircraft.latitude, aircraft.longitude]
+    ]);
+
+    window.aircraftMap.fitBounds(bounds, {
+        paddingTopLeft: [90, 90],
+        paddingBottomRight: [50, 50]
+    });
+
+    setTimeout(() => {
+        window.aircraftMap.invalidateSize();
+    }, 100);
+}
+
 async function buscarAeronavesProximas() {
 
     const sburLongitude = sbur[0];
     const sburLatitude = sbur[1];
-    const raioNM = 70;
 
     imagemCarregamento.style.display = 'block';
 
@@ -102,7 +213,9 @@ async function buscarAeronavesProximas() {
             let flightLevel = null;
 
             if (altitudePes !== '') {
+
                 flightLevel = Math.floor(altitudePes / 100);
+
                 let flStrTemp = flightLevel.toString().padStart(3, '0');
 
                 if (flStrTemp[2] === '9') {
@@ -123,7 +236,9 @@ async function buscarAeronavesProximas() {
                 distanciaNM: distanciaSburNM,
                 dentroPoligono,
                 flightLevel,
-                rumoMagnetic: rumoMagneticCalcStr
+                rumoMagnetic: rumoMagneticCalcStr,
+                latitude,
+                longitude
             });
         });
 
@@ -135,11 +250,11 @@ async function buscarAeronavesProximas() {
 
             const row = resultadoTableBody.insertRow();
 
-            // COLUNA 1
             const identifierCell = row.insertCell();
             identifierCell.textContent = aircraft.identifier;
 
             const altitudeNaTabela = aircraft.altitude;
+
             const nivelDeVooAbaixoDe195 =
                 altitudeNaTabela.startsWith('F') &&
                 parseInt(altitudeNaTabela.substring(1)) <= 195;
@@ -148,34 +263,39 @@ async function buscarAeronavesProximas() {
                 identifierCell.classList.add('dentro-poligono-e-abaixo-f195');
             }
 
-            // COLUNA 2 (MANTIDA ORIGINAL)
             row.insertCell().textContent = aircraft.aircraftType;
-
             row.insertCell().textContent = altitudeNaTabela;
             row.insertCell().textContent = aircraft.velocidade + 'KT';
             row.insertCell().textContent = aircraft.squawkCode;
             row.insertCell().textContent = aircraft.radial;
+
             row.insertCell().textContent =
                 isFinite(aircraft.distanciaNM)
                     ? aircraft.distanciaNM.toFixed(0) + 'NM'
                     : '---NM';
 
-            // RM (COLUNA ORIGINAL RESTAURADA)
             row.insertCell().textContent =
                 'RM' + aircraft.rumoMagnetic + '°';
 
-            // avião
+            // tabela (mantém igual)
             const planeCell = row.insertCell();
+
             const planeImg = document.createElement('img');
             planeImg.src = 'arq/plane.png';
+
             planeImg.width = 16;
             planeImg.height = 16;
 
+            planeImg.style.cursor = 'pointer';
             planeImg.style.transformOrigin = 'center';
             planeImg.style.transform =
                 aircraft.rumoMagnetic !== '---'
-                    ? `rotate(${aircraft.rumoMagnetic - 22}deg)`
+                    ? `rotate(${parseInt(aircraft.rumoMagnetic) - 22}deg)`
                     : 'rotate(0deg)';
+
+            planeImg.addEventListener('click', function () {
+                abrirMapaAeronave(aircraft);
+            });
 
             planeCell.appendChild(planeImg);
         });
