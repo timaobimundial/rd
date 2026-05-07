@@ -12,8 +12,8 @@ function abrirMapaAeronave(aircraft) {
         mapDiv.style.display = 'block';
         mapDiv.style.position = 'fixed';
 
-mapDiv.style.top = (rect.top + window.scrollY) + 'px';
-mapDiv.style.left = (rect.left + window.scrollX) + 'px';
+mapDiv.style.top = rect.top + 'px';
+mapDiv.style.left = rect.left + 'px';
 
         mapDiv.style.width = rect.width + 'px';
         mapDiv.style.height = rect.height + 'px';
