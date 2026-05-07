@@ -23,7 +23,6 @@ function getFix(ident) {
   return fixes.find(f => f.ident === ident);
 }
 
-// 🔹 controle pra evitar corrida entre digitação
 let lastRequestId = 0;
 
 async function fetchAeroportoInfo() {
@@ -72,14 +71,12 @@ async function fetchAeroportoInfo() {
     let latDest, lngDest;
     let resultHTML = "";
 
-    // ================= FIX =================
     if (icaoCode.length === 5) {
 
         if (!fixesLoaded) {
             await fixesPromise;
         }
 
-        // 🔹 evita resposta antiga sobrescrever nova
         if (requestId !== lastRequestId) return;
 
         const fix = getFix(icaoCode);
@@ -99,7 +96,6 @@ async function fetchAeroportoInfo() {
         resultHTML = "";
     }
 
-    // ================= AERODROMO =================
     if (icaoCode.length === 4) {
 
         const metarUrl = `https://api-redemet.decea.mil.br/mensagens/metar/${icaoCode}?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL`;
@@ -161,7 +157,26 @@ async function fetchAeroportoInfo() {
 
     document.getElementById("result").innerHTML = resultHTML;
     document.getElementById("result").style.display = "block";
-    document.getElementById("map").style.display = "block";
+
+    const mapDiv = document.getElementById("map");
+    const metarContainer = document.querySelector(".container_metar");
+
+    if (metarContainer) {
+
+        const rect = metarContainer.getBoundingClientRect();
+
+        mapDiv.style.display = "block";
+        mapDiv.style.position = "fixed";
+
+        mapDiv.style.top = rect.top + "px";
+        mapDiv.style.left = rect.left + "px";
+
+        mapDiv.style.width = rect.width + "px";
+        mapDiv.style.height = rect.height + "px";
+
+        mapDiv.style.margin = "0";
+        mapDiv.style.padding = "0";
+    }
 
     if (map) {
         map.remove();
@@ -192,20 +207,48 @@ async function fetchAeroportoInfo() {
         ]
     ];
 
-    L.polygon(polygonCoordinates, { color: 'gray', fillColor: 'lightgray', fillOpacity: 0.5, weight: 0.5 }).addTo(map);
+    L.polygon(polygonCoordinates, {
+        color: 'gray',
+        fillColor: 'lightgray',
+        fillOpacity: 0.5,
+        weight: 0.5
+    }).addTo(map);
 
     const tooltipContent = `SBUR<br><span style="display:inline-block; width:50%; text-align:left">${formattedMagneticBearing}º</span><span style="display:inline-block; width:50%; text-align:right">${distance}NM</span>`;
 
     const markerSBUR = L.marker([sbur.lat, sbur.lng]).addTo(map);
-    markerSBUR.bindTooltip(tooltipContent, { permanent: true, direction: "top", offset: [0, -15] });
+
+    markerSBUR.bindTooltip(tooltipContent, {
+        permanent: true,
+        direction: "top",
+        offset: [0, -15]
+    });
 
     const markerDest = L.marker([latDest, lngDest]).addTo(map);
-    markerDest.bindTooltip(icaoCode, { permanent: true, direction: "top", offset: [0, -15] });
 
-    L.polyline([sbur, { lat: latDest, lng: lngDest }], { color: '#7fb0d4' }).addTo(map);
+    markerDest.bindTooltip(icaoCode, {
+        permanent: true,
+        direction: "top",
+        offset: [0, -15]
+    });
 
-    const bounds = L.latLngBounds([markerSBUR.getLatLng(), markerDest.getLatLng()]);
-    map.fitBounds(bounds, { paddingTopLeft: [90, 90], paddingBottomRight: [50, 50] });
+    L.polyline([sbur, { lat: latDest, lng: lngDest }], {
+        color: '#7fb0d4'
+    }).addTo(map);
+
+    const bounds = L.latLngBounds([
+        markerSBUR.getLatLng(),
+        markerDest.getLatLng()
+    ]);
+
+    map.fitBounds(bounds, {
+        paddingTopLeft: [90, 90],
+        paddingBottomRight: [50, 50]
+    });
+
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100);
 }
 
 function clearIcaoCode() {
@@ -219,39 +262,57 @@ function openNewTab() {
     const icaoCode = icaoInput.value.trim().toUpperCase();
 
     if (icaoCode.length === 4) {
+
         const url = `https://aisweb.decea.mil.br/?i=aerodromos&codigo=${icaoCode}`;
+
         window.open(url, "_blank");
 
         icaoInput.value = "";
+
         document.getElementById("result").style.display = "none";
         document.getElementById("map").style.display = "none";
     }
 }
 
 document.getElementById("icaoCode").addEventListener("input", fetchAeroportoInfo);
+
 document.getElementById("searchButton").addEventListener("click", openNewTab);
+
 document.getElementById("icaoCode").addEventListener("keypress", function(event) {
+
     if (event.key === "Enter") {
         openNewTab();
     }
 });
 
 const closeButton = document.createElement("button");
+
 closeButton.innerHTML = "X";
+
 closeButton.style.position = "absolute";
 closeButton.style.top = "10px";
 closeButton.style.right = "10px";
+
 closeButton.style.width = "32px";
 closeButton.style.height = "32px";
+
 closeButton.style.borderRadius = "5px";
+
 closeButton.style.backgroundColor = "#7fb0d4";
 closeButton.style.color = "white";
+
 closeButton.style.border = "none";
+
 closeButton.style.padding = "0";
+
 closeButton.style.fontSize = "16px";
+
 closeButton.style.textAlign = "center";
+
 closeButton.style.cursor = "pointer";
+
 closeButton.style.zIndex = "1000";
+
 closeButton.onclick = clearIcaoCode;
 
 document.getElementById("map").appendChild(closeButton);
