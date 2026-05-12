@@ -23,13 +23,13 @@ text-transform: uppercase;
 
 
 .topo7 {
-    display: flex; /* Torna o contÃªiner flexÃ­vel */
+    display: flex; /* Torna o contêiner flexível */
     justify-content: center; /* Centraliza as divs horizontalmente */
 }
 .sol {
 	
-	margin: 0px 30px 0px 0px; /* Adiciona espaÃ§o entre as divs */
-	padding: 0 20px; /* Adiciona espaÃ§o interno */
+	margin: 0px 30px 0px 0px; /* Adiciona espaço entre as divs */
+	padding: 0 20px; /* Adiciona espaço interno */
 	width: 20%;
 	color: #2c6e99; /* Cor da fonte */
 	font-size: 14px;
@@ -147,10 +147,10 @@ input[type=text] {
     left: 203px;
     text-align: center;
 
-    white-space: nowrap;      /* NÃ£o quebrar linha */
+    white-space: nowrap;      /* Não quebrar linha */
     overflow: visible;        /* Permitir "vazar" para fora */
     max-width: none;          /* Remove o limite de 300px */
-    width: auto;              /* Deixa a largura se ajustar ao conteÃºdo */
+    width: auto;              /* Deixa a largura se ajustar ao conteúdo */
 }
 
 
@@ -161,7 +161,7 @@ input[type=text] {
 .result_anac {
   
   
-    position: absolute; /* Garante que o conteÃºdo nÃ£o empurre outros elementos */
+    position: absolute; /* Garante que o conteúdo não empurre outros elementos */
        width: 13%; /* Define a largura do elemento em porcentagem */
     margin: 0 auto; /* Centraliza o elemento horizontalmente */
 padding-top: 3px;
@@ -211,7 +211,7 @@ align-items: center;
     font-family: Arial, sans-serif;
     z-index: 5; /* Garante que a div fique acima de outros elementos, mas abaixo de 'result' */
     box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Sombra suave para destacar */
-    display: block; /* Define para ser visÃ­vel */
+    display: block; /* Define para ser visível */
 }
 
 .map p {
@@ -235,4 +235,47 @@ align-items: center;
             color: black;
         }
 
+.anac_box {
+    width: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    text-transform: none;
+}
 
+.anac_titulo {
+    font-size: 15px;
+    font-weight: bold;
+    color: #1f2f44;
+    padding-bottom: 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #cfcfcf;
+    text-align: left;
+}
+
+.anac_linha {
+    display: flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 8px;
+    border-bottom: 1px solid #d7d7d7;
+    box-sizing: border-box;
+    transition: background 0.15s ease;
+}
+
+.anac_linha:hover {
+    background: #e7e7e7;
+}
+
+.anac_label {
+    width: 240px;
+    min-width: 240px;
+    font-weight: bold;
+    color: #222;
+    text-align: left;
+}
+
+.anac_valor {
+    flex: 1;
+    color: #444;
+    text-align: left;
+    word-break: break-word;
+}
