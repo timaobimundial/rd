@@ -55,7 +55,7 @@
                 }
             }
 
-            document.getElementById("result_anac").innerHTML = resultado || "NIL";
+            document.getElementById("result_anac").innerHTML = resultado || "Em manutenção";
             document.getElementById("loading").style.display = "none";
         } catch (error) {
             document.getElementById("result_anac").innerHTML = "Erro";
