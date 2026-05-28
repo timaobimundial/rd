@@ -128,8 +128,8 @@ document.addEventListener('input', function(event) {
     const minuto = agora.getUTCMinutes().toString().padStart(2, '0');
     const horaAtual = hora + minuto;
 
-    // Data limite: 15/05/2026 08:00 UTC
-    const dataFinal = new Date(Date.UTC(2026, 4, 15, 8, 0));
+    // Data limite: 13/06/2026 08:00 UTC
+    const dataFinal = new Date(Date.UTC(2026, 5, 13, 8, 0));
     if (agora.getTime() >= dataFinal.getTime()) {
       document.getElementById('aviso_ur').innerHTML = '';
       return;
