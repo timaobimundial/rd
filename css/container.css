@@ -36,6 +36,18 @@
     font-size: 17px;
 }
 
+.adwrng {
+    margin-top: 2px;
+    padding: 5px;
+    font-size: 17px;
+    font-weight: normal;
+    color: #ff5e71;
+    background: #171717;
+    border-left: 0px solid #ff5e71;
+
+border-radius: 5px;
+}
+
 .container_notam {
     width: 40%;
     font-size: 17px;
@@ -129,7 +141,7 @@ ul li b:hover {
 
 /* Estilo para o período ativo */
 .periodo.ativo {
-    color: #ff384f;
+    color: #ff5e71;
 }
 
 /* Estilo para os períodos inativos */
