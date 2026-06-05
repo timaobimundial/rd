@@ -518,6 +518,43 @@ $(document).ready(function(){
  <tr>
     <th style="text-align: left">
     <ul id="cartsburItemsList" class="metar_sbur"></ul>
+
+
+<div class="adwrng" style="display:none;"></div>
+
+
+
+<script>
+$(document).ready(function () {
+
+  const urlAdwrng = "https://api-redemet.decea.mil.br/mensagens/aviso/SBUR?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
+
+  $.ajax({
+    url: urlAdwrng,
+    dataType: "json",
+    success: function (results) {
+
+      const el = document.querySelector(".adwrng");
+      const dados = results?.data?.data;
+
+      if (dados && dados.length > 0 && dados[0].mens) {
+        el.innerHTML = dados[0].mens;
+        el.style.display = "block";
+      } else {
+        el.style.display = "none";
+      }
+
+    },
+    error: function () {
+      document.querySelector(".adwrng").style.display = "none";
+    }
+  });
+
+});
+</script>
+
+
+
     </th>
     <th style="vertical-align: bottom; padding: 0px 0px 0px 0px">
     
