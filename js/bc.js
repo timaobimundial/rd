@@ -304,7 +304,7 @@ if (aircraft.dentroPoligono && nivelDeVooAbaixoDe195) {
         });
 
 document.title = existeAeronaveDestacada
-    ? 'Radial e distância ✈️ TMA'
+    ? 'Radial e distância (✈️ na TMA)'
     : 'Radial e distância';
 
 resultadoTable.style.display = 'table';
