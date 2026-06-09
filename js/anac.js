@@ -246,4 +246,38 @@
     document.getElementById("marca")
         .addEventListener("input", onInput);
 
+
+
+function abrirANAC() {
+
+    const marca =
+        document.getElementById("marca").value.toUpperCase();
+
+    if (marca.length >= 5) {
+
+        const url =
+            `https://sistemas.anac.gov.br/aeronaves/cons_rab_resposta.asp?textMarca=${marca}`;
+
+        window.open(url, "_blank");
+
+    }
+}
+
+function ativarBotaoEnter(event) {
+
+    if (event.key === "Enter") {
+        abrirANAC();
+    }
+}
+
+document.getElementById("marca")
+    .addEventListener("keydown", ativarBotaoEnter);
+
+document.getElementById("search-btn")
+    .addEventListener("click", abrirANAC);
+
+
+     
+
+     
 });
