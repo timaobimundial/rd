@@ -242,11 +242,13 @@ async function buscarAeronavesProximas() {
             });
         });
 
-        aircraftData.sort((a, b) => a.distanciaNM - b.distanciaNM);
+aircraftData.sort((a, b) => a.distanciaNM - b.distanciaNM);
 
-        resultadoTableBody.innerHTML = '';
+resultadoTableBody.innerHTML = '';
 
-        aircraftData.forEach(aircraft => {
+let existeAeronaveDestacada = false;
+
+aircraftData.forEach(aircraft => {
 
             const row = resultadoTableBody.insertRow();
 
@@ -257,11 +259,12 @@ async function buscarAeronavesProximas() {
 
             const nivelDeVooAbaixoDe195 =
                 altitudeNaTabela.startsWith('F') &&
-                parseInt(altitudeNaTabela.substring(1)) <= 195;
+                parseInt(altitudeNaTabela.substring(1)) <= 400;
 
-            if (aircraft.dentroPoligono && nivelDeVooAbaixoDe195) {
-                identifierCell.classList.add('dentro-poligono-e-abaixo-f195');
-            }
+if (aircraft.dentroPoligono && nivelDeVooAbaixoDe195) {
+    identifierCell.classList.add('dentro-poligono-e-abaixo-f195');
+    existeAeronaveDestacada = true;
+}
 
             row.insertCell().textContent = aircraft.aircraftType;
             row.insertCell().textContent = altitudeNaTabela;
@@ -300,8 +303,12 @@ async function buscarAeronavesProximas() {
             planeCell.appendChild(planeImg);
         });
 
-        resultadoTable.style.display = 'table';
-        imagemCarregamento.style.display = 'none';
+document.title = existeAeronaveDestacada
+    ? 'Radial e distância ✈️ TMA'
+    : 'Radial e distância';
+
+resultadoTable.style.display = 'table';
+imagemCarregamento.style.display = 'none';
 
     } catch (err) {
         console.error(err);
