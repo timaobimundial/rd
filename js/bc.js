@@ -1,4 +1,4 @@
-const sbur = [-47.958611, -19.794722];
+const sbur = [-47.966111, -19.764722];
 const declinacaoSBUR = -22;
 
 const resultadoTable = document.getElementById('resultado-table');
