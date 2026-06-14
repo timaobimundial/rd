@@ -15,12 +15,12 @@
 }
 
 .container_metar, .container_notam {
-    background-image: url('../arq/bgmet50.png'); /* Imagem de fundo com repetição */
+    background-image: url('../arq/bgmet50.png'); /* Imagem de fundo com repetiÃ§Ã£o */
     background-repeat: repeat; /* Faz a imagem se repetir */
     border-radius: 5px;
     padding: 20px;
     max-height: 500px; 
-    overflow-y: auto; /* Adiciona rolagem caso o conteúdo ultrapasse o limite */
+    overflow-y: auto; /* Adiciona rolagem caso o conteÃºdo ultrapasse o limite */
 }
 
 .container_metar {
@@ -39,7 +39,7 @@
 .adwrng {
     margin: 2px 2px 7px 2px;
     padding: 5px;
-    font-size: 17px;
+    font-size: 15px;
     font-weight: normal;
     color: #ffffff;
     background: #222;
@@ -103,7 +103,7 @@ ul li b:hover {
     cursor: default;
 }
 
-/* Estilo dos links e botões de NOTAM e Suplemento */
+/* Estilo dos links e botÃµes de NOTAM e Suplemento */
 .api_nt a:link,
 .api_sup a:link {
     text-decoration: none;
@@ -131,7 +131,7 @@ ul li b:hover {
     text-decoration: none;
 }
 
-/* Estilo comum para todos os períodos */
+/* Estilo comum para todos os perÃ­odos */
 .periodo {
     background: #212121;
     border-radius: 5px;
@@ -139,12 +139,12 @@ ul li b:hover {
     margin-right: 5px;
 }
 
-/* Estilo para o período ativo */
+/* Estilo para o perÃ­odo ativo */
 .periodo.ativo {
     color: #ff5e71;
 }
 
-/* Estilo para os períodos inativos */
+/* Estilo para os perÃ­odos inativos */
 .periodo.inativo {
     color: white;
 }
