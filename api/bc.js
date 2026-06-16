@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   try {
     const response = await fetch(
-      "https://api.adsb.lol/v2/point/-19.794722/-47.958611/80"
+      "https://api.adsb.lol/v2/point/-19.794722/-47.958611/70"
     );
 
     const text = await response.text();
