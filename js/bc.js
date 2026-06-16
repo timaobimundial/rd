@@ -7,7 +7,7 @@ const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento.querySelector('img');
 
-const API_URL = "https://bc.carlos-gomes-299.workers.dev/";
+const API_URL = "https://project-i7r19.vercel.app/api/bc";
 
 // polígono SBUR
 const polygonCoordinates = [
