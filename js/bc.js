@@ -7,7 +7,7 @@ const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento.querySelector('img');
 
-const API_URL = "https://api.adsb.lol/v2/point/-19.794722/-47.958611/80";
+const API_URL = "https://bc.carlos-gomes-299.workers.dev/";
 
 // polígono SBUR
 const polygonCoordinates = [
