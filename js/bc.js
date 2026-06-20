@@ -293,7 +293,7 @@ if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
     altitudeCell.style.cursor = 'default';
 }
     
-if (aircraft.baro_rate != null) {
+if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
     altitudeCell.title = Math.abs(Math.round(aircraft.baro_rate)) + ' FT/MIN';
 }
     
