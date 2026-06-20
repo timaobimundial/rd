@@ -282,7 +282,8 @@ if (aircraft.dentroPoligono && nivelDeVooAbaixoDe195) {
 const altitudeCell = row.insertCell();
 
 altitudeCell.textContent = altitudeNaTabela;
-
+altitudeCell.style.cursor = 'pointer';
+    
 if (aircraft.baro_rate != null) {
     altitudeCell.title = Math.abs(Math.round(aircraft.baro_rate)) + ' FT/MIN';
 }
