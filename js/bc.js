@@ -276,7 +276,15 @@ if (aircraft.dentroPoligono && nivelDeVooAbaixoDe195) {
 }
 
             row.insertCell().textContent = aircraft.aircraftType;
-            row.insertCell().textContent = altitudeNaTabela;
+    
+const altitudeCell = row.insertCell();
+
+altitudeCell.textContent = altitudeNaTabela;
+
+if (aircraft.baro_rate != null) {
+    altitudeCell.title = Math.abs(Math.round(aircraft.baro_rate)) + ' FT/MIN';
+}
+    
             row.insertCell().textContent = aircraft.velocidade + 'KT';
             row.insertCell().textContent = aircraft.squawkCode;
             row.insertCell().textContent = aircraft.radial;
