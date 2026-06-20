@@ -6,7 +6,7 @@ const resultadoTableBody = document.getElementById('resultado-table-body');
 const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento.querySelector('img');
-const tooltip = document.getElementById('tooltip-rate');
+
 
 const API_URL = "https://project-i7r19.vercel.app/api/bc";
 
@@ -285,19 +285,6 @@ const altitudeCell = row.insertCell();
 altitudeCell.textContent = altitudeNaTabela;
 
 
-if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
-
-    altitudeCell.addEventListener('mousemove', (e) => {
-        tooltip.style.display = 'block';
-        tooltip.style.left = (e.pageX + 10) + 'px';
-        tooltip.style.top = (e.pageY + 10) + 'px';
-        tooltip.textContent = Math.abs(Math.round(aircraft.baro_rate)) + ' FT/MIN';
-    });
-
-    altitudeCell.addEventListener('mouseleave', () => {
-        tooltip.style.display = 'none';
-    });
-}
 
     
 if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
