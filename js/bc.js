@@ -223,14 +223,16 @@ async function buscarAeronavesProximas() {
                     flStrTemp = flightLevel.toString().padStart(3, '0');
                 }
 
-if (aircraft.baro_rate === 0 || aircraft.baro_rate == null) {
+const rate = aircraft.baro_rate;
+
+if (rate == null || Math.abs(rate) <= 400) {
     flStr = 'F' + flStrTemp;
 }
-else if (aircraft.baro_rate < 0) {
-    flStr = '↘' + flStrTemp; // descendo (canto inferior direito)
+else if (rate < -400) {
+    flStr = '↘' + flStrTemp; // descendo real
 }
-else if (aircraft.baro_rate > 0) {
-    flStr = '↗' + flStrTemp; // subindo (canto superior direito)
+else if (rate > 400) {
+    flStr = '↗' + flStrTemp; // subindo real
 }
             }
 
