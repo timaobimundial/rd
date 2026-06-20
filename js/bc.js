@@ -288,7 +288,7 @@ altitudeCell.textContent = altitudeNaTabela;
 
     
 if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
-    altitudeCell.style.cursor = 'pointer';
+    altitudeCell.style.cursor = 'help';
 } else {
     altitudeCell.style.cursor = 'default';
 }
