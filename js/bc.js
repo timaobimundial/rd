@@ -223,7 +223,15 @@ async function buscarAeronavesProximas() {
                     flStrTemp = flightLevel.toString().padStart(3, '0');
                 }
 
-                flStr = 'F' + flStrTemp;
+if (aircraft.baro_rate === 0 || aircraft.baro_rate == null) {
+    flStr = 'F' + flStrTemp;
+}
+else if (aircraft.baro_rate < 0) {
+    flStr = '↘' + flStrTemp; // descendo (canto inferior direito)
+}
+else if (aircraft.baro_rate > 0) {
+    flStr = '↗' + flStrTemp; // subindo (canto superior direito)
+}
             }
 
             aircraftData.push({
@@ -236,6 +244,7 @@ async function buscarAeronavesProximas() {
                 distanciaNM: distanciaSburNM,
                 dentroPoligono,
                 flightLevel,
+                baro_rate: aircraft.baro_rate,
                 rumoMagnetic: rumoMagneticCalcStr,
                 latitude,
                 longitude
