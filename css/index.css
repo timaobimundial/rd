@@ -19,14 +19,3 @@ width: 80%;
     font-weight: normal;
     margin-bottom: 1px;
 }
-#tooltip-rate {
-    position: absolute;
-    background: black;
-    color: white;
-    padding: 4px 6px;
-    font-size: 12px;
-    border-radius: 4px;
-    pointer-events: none;
-    display: none;
-    z-index: 99999;
-}
