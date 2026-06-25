@@ -1,3 +1,11 @@
+Aqui está o código completo e atualizado.
+
+As alterações foram feitas dentro da função `abrirMapaAeronave`:
+
+1. Removi o `bindTooltip` do `markerSBUR` (agora ele exibe apenas o pin, sem nenhuma informação ou popup).
+2. Atualizei o `bindTooltip` do `planeMarker` para incluir o identificador da aeronave **e** a informação de radial/distância formatada logo abaixo, em uma nova linha.
+
+```javascript
 const sbur = [-47.966111, -19.764722];
 const declinacaoSBUR = -22;
 
@@ -95,28 +103,20 @@ function abrirMapaAeronave(aircraft) {
         { icon: planeIcon }
     ).addTo(window.aircraftMap);
 
-    planeMarker.bindTooltip(aircraft.identifier, {
+    // Extrai apenas o número limpo da radial (ex: "270")
+    const radialLimpa = aircraft.radial.replace('URB', '').replace('°', '');
+    
+    // Monta o conteúdo do Tooltip do avião com o Identificador + Radial e Distância na linha de baixo
+    const planeTooltipContent = `${aircraft.identifier}<br>${radialLimpa}° ${aircraft.distanciaNM.toFixed(0)}NM`;
+
+    planeMarker.bindTooltip(planeTooltipContent, {
         permanent: true,
         direction: "top",
         offset: [0, -15]
     });
 
+    // Pin de SBUR criado sem bindTooltip (apenas o marcador visual)
     const markerSBUR = L.marker([sbur[1], sbur[0]]).addTo(window.aircraftMap);
-
-    const tooltipContent =
-        `SBUR<br>
-        <span style="display:inline-block;width:50%;text-align:left">
-        ${aircraft.radial.replace('URB', '').replace('°', '')}°
-        </span>
-        <span style="display:inline-block;width:50%;text-align:right">
-        ${aircraft.distanciaNM.toFixed(0)}NM
-        </span>`;
-
-    markerSBUR.bindTooltip(tooltipContent, {
-        permanent: true,
-        direction: "top",
-        offset: [0, -15]
-    });
 
     L.polyline(
         [
@@ -181,7 +181,7 @@ async function buscarAeronavesProximas() {
             const identifier = callsign || registration || '------';
 
             const altitudePes = aircraft.alt_baro != null ? Math.round(aircraft.alt_baro) : '';
-            const velocidadeKnots = aircraft.gs != null ? Math.round(aircraft.gs) : '';
+            const velocidadKnots = aircraft.gs != null ? Math.round(aircraft.gs) : '';
             const heading = aircraft.track != null ? Math.round(aircraft.track) : null;
 
             const aircraftType = (aircraft.t || aircraft.type || '').replace("adsb_icao", "----");
@@ -224,24 +224,24 @@ async function buscarAeronavesProximas() {
                     flStrTemp = flightLevel.toString().padStart(3, '0');
                 }
 
-const rate = aircraft.baro_rate;
+                const rate = aircraft.baro_rate;
 
-if (rate == null || Math.abs(rate) <= 400) {
-    flStr = 'F' + flStrTemp;
-}
-else if (rate < -400) {
-    flStr = '↘' + flStrTemp; // descendo real
-}
-else if (rate > 400) {
-    flStr = '↗' + flStrTemp; // subindo real
-}
+                if (rate == null || Math.abs(rate) <= 400) {
+                    flStr = 'F' + flStrTemp;
+                }
+                else if (rate < -400) {
+                    flStr = '↘' + flStrTemp; // descendo real
+                }
+                else if (rate > 400) {
+                    flStr = '↗' + flStrTemp; // subindo real
+                }
             }
 
             aircraftData.push({
                 identifier,
                 aircraftType,
                 altitude: flStr,
-                velocidade: velocidadeKnots || '---',
+                velocidade: velocidadKnots || '---',
                 squawkCode,
                 radial: 'URB' + radialSburStr + '°',
                 distanciaNM: distanciaSburNM,
@@ -254,17 +254,18 @@ else if (rate > 400) {
             });
         });
 
-aircraftData.sort((a, b) => a.distanciaNM - b.distanciaNM);
+        aircraftData.sort((a, b) => a.distanciaNM - b.distanciaNM);
 
-resultadoTableBody.innerHTML = '';
+        resultadoTableBody.innerHTML = '';
 
-let existeAeronaveDestacada = false;
+        let existeAeronaveDestacada = false;
 
-aircraftData.forEach(aircraft => {
+        aircraftData.forEach(aircraft => {
 
             const row = resultadoTableBody.insertRow();
 
             const identifierCell = row.insertCell();
+            textContext = aircraft.identifier;
             identifierCell.textContent = aircraft.identifier;
 
             const altitudeNaTabela = aircraft.altitude;
@@ -273,30 +274,26 @@ aircraftData.forEach(aircraft => {
                 altitudeNaTabela.startsWith('F') &&
                 parseInt(altitudeNaTabela.substring(1)) <= 195;
 
-if (aircraft.dentroPoligono && nivelDeVooAbaixoDe195) {
-    identifierCell.classList.add('dentro-poligono-e-abaixo-f195');
-    existeAeronaveDestacada = true;
-}
+            if (aircraft.dentroPoligono && nivelDeVooAbaixoDe195) {
+                identifierCell.classList.add('dentro-poligono-e-abaixo-f195');
+                existeAeronaveDestacada = true;
+            }
 
             row.insertCell().textContent = aircraft.aircraftType;
-    
-const altitudeCell = row.insertCell();
+            
+            const altitudeCell = row.insertCell();
+            altitudeCell.textContent = altitudeNaTabela;
 
-altitudeCell.textContent = altitudeNaTabela;
-
-
-
-    
-if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
-    altitudeCell.style.cursor = 'progress';
-} else {
-    altitudeCell.style.cursor = 'default';
-}
-    
-if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
-    altitudeCell.title = Math.abs(Math.round(aircraft.baro_rate)) + ' FT/MIN';
-}
-    
+            if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
+                altitudeCell.style.cursor = 'progress';
+            } else {
+                altitudeCell.style.cursor = 'default';
+            }
+            
+            if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
+                altitudeCell.title = Math.abs(Math.round(aircraft.baro_rate)) + ' FT/MIN';
+            }
+            
             row.insertCell().textContent = aircraft.velocidade + 'KT';
             row.insertCell().textContent = aircraft.squawkCode;
             row.insertCell().textContent = aircraft.radial;
@@ -332,12 +329,12 @@ if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
             planeCell.appendChild(planeImg);
         });
 
-document.title = existeAeronaveDestacada
-    ? 'Radial e distância (✈️ na TMA)'
-    : 'Radial e distância';
+        document.title = existeAeronaveDestacada
+            ? 'Radial e distância (✈️ na TMA)'
+            : 'Radial e distância';
 
-resultadoTable.style.display = 'table';
-imagemCarregamento.style.display = 'none';
+        resultadoTable.style.display = 'table';
+        imagemCarregamento.style.display = 'none';
 
     } catch (err) {
         console.error(err);
@@ -347,3 +344,5 @@ imagemCarregamento.style.display = 'none';
 }
 
 document.addEventListener('DOMContentLoaded', buscarAeronavesProximas);
+
+```
