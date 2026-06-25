@@ -1,11 +1,3 @@
-Aqui está o código completo e atualizado.
-
-As alterações foram feitas dentro da função `abrirMapaAeronave`:
-
-1. Removi o `bindTooltip` do `markerSBUR` (agora ele exibe apenas o pin, sem nenhuma informação ou popup).
-2. Atualizei o `bindTooltip` do `planeMarker` para incluir o identificador da aeronave **e** a informação de radial/distância formatada logo abaixo, em uma nova linha.
-
-```javascript
 const sbur = [-47.966111, -19.764722];
 const declinacaoSBUR = -22;
 
