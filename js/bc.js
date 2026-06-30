@@ -269,9 +269,9 @@ aircraftData.forEach(aircraft => {
 
             const altitudeNaTabela = aircraft.altitude;
 
-            const nivelDeVooAbaixoDe195 =
-                altitudeNaTabela.startsWith('F') &&
-                parseInt(altitudeNaTabela.substring(1)) <= 195;
+const nivelDeVooAbaixoDe195 =
+    aircraft.flightLevel != null &&
+    aircraft.flightLevel <= 195;
 
 if (aircraft.dentroPoligono && nivelDeVooAbaixoDe195) {
     identifierCell.classList.add('dentro-poligono-e-abaixo-f195');
