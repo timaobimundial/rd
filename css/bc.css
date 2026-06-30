@@ -11,7 +11,7 @@
     margin-top: 10px;
 }
 #resultado-table td {
-    border: none; /* Remove as bordas das células */
+    border: none; /* Remove as bordas das cÃ©lulas */
     padding-top: 4px; /* Reduz o padding superior */
     padding-bottom: 4px; /* Reduz o padding inferior */
     padding-left: 8px;
@@ -20,8 +20,19 @@
     white-space: nowrap;
 }
 #resultado-table tr {
-    border-bottom: 1px solid transparent; /* Mantém o espaçamento transparente */
+    border-bottom: 1px solid transparent; /* MantÃ©m o espaÃ§amento transparente */
 }
 .dentro-poligono-e-abaixo-f195 {
     text-decoration: underline;
+}
+.tooltip-aeronave {
+    font-family: arial;
+    font-size: 12px;
+    color: #000;
+    line-height: 1;
+
+    background: #fff;
+    border: 0px solid #666;
+    border-radius: 4px;
+    padding: 3px;
 }
