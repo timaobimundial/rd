@@ -180,7 +180,10 @@ async function buscarAeronavesProximas() {
             const registration = aircraft.r || '';
             const identifier = callsign || registration || '------';
 
-            const altitudePes = aircraft.alt_baro != null ? Math.round(aircraft.alt_baro) : '';
+const altitudePes =
+    aircraft.alt_baro != null && !isNaN(Number(aircraft.alt_baro))
+        ? Math.round(Number(aircraft.alt_baro))
+        : '';
             const velocidadeKnots = aircraft.gs != null ? Math.round(aircraft.gs) : '';
             const heading = aircraft.track != null ? Math.round(aircraft.track) : null;
 
