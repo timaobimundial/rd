@@ -445,7 +445,7 @@ resultadoTable.style.display = 'table';
             botaoFechar.style.padding = '5px 10px';
             botaoFechar.style.cursor = 'pointer';
             botaoFechar.style.fontWeight = 'bold';
-            document.getElementById('map').appendChild(botaoFechar);
+document.body.appendChild(botaoFechar);
         }
         
         botaoFechar.onclick = function() {
