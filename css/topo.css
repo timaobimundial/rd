@@ -205,7 +205,7 @@ align-items: center;
     background-color: #d3d3d3; /* Fundo cinza */
     color: #555555; /* Cor do texto cinza escuro */
     padding: 10px;
-    font-size: 14px;
+    font-size: 12px;
     font-family: Arial, sans-serif;
     z-index: 5; /* Garante que a div fique acima de outros elementos, mas abaixo de 'result' */
     box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Sombra suave para destacar */
