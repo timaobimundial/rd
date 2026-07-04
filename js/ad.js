@@ -277,7 +277,7 @@ async function fetchAeroportoInfo() {
         window.map = null;
     }
 
-    // CRIA NOVO MAPA
+    // CRIA NOVO MAPA kkj
     window.map = L.map('map', {
         scrollWheelZoom: true
     }).setView([sbur.lat, sbur.lng], 5);
