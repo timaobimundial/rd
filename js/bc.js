@@ -309,15 +309,15 @@ async function buscarAeronavesProximas() {
 
                 const rate = aircraft.baro_rate;
 
-                if (rate == null || Math.abs(rate) <= 400) {
-                    flStr = 'F' + flStrTemp;
-                }
-                else if (rate < -400) {
-                    flStr = '↘' + flStrTemp;
-                }
-                else if (rate > 400) {
-                    flStr = '↗' + flStrTemp;
-                }
+if (rate == null || Math.abs(rate) <= 400) {
+    flStr = 'F' + flStrTemp;
+}
+else if (rate < -400) {
+    flStr = `<span style="vertical-align: middle; display: inline-block; margin-top: -2px;">↘</span>` + flStrTemp;
+}
+else if (rate > 400) {
+    flStr = `<span style="vertical-align: middle; display: inline-block; margin-top: -2px;">↗</span>` + flStrTemp;
+}
             }
 
             aircraftData.push({
@@ -363,7 +363,7 @@ async function buscarAeronavesProximas() {
             row.insertCell().textContent = aircraft.aircraftType;
             
             const altitudeCell = row.insertCell();
-            altitudeCell.textContent = altitudeNaTabela;
+altitudeCell.innerHTML = altitudeNaTabela;
 
             if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
                 altitudeCell.style.cursor = 'progress';
