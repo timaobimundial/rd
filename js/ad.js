@@ -316,34 +316,42 @@ async function fetchAeroportoInfo() {
         }
     ).addTo(window.map);
 
-const tooltipContent =
-    `SBUR<br>
-    ${formattedMagneticBearing}º ${distance}NM`;
-
-    const markerSBUR =
-        L.marker([sbur.lat, sbur.lng]).addTo(window.map);
-
-markerSBUR.bindTooltip(
-    tooltipContent,
-    {
-        permanent: true,
-        direction: "top",
-        offset: [0, -15],
-        className: "tooltip-sbur"
-    }
-);;
-
-    const markerDest =
-        L.marker([latDest, lngDest]).addTo(window.map);
-
-    markerDest.bindTooltip(
-        icaoCode,
+// =========================================================
+    // ALTERADO: MOVENDO AS INFORMAÇÕES DE NAVEGAÇÃO PARA O DESTINO
+    // =========================================================
+    
+    // 1. Origem: Mantém fixo apenas o nome "SBUR"
+    const markerSBUR = L.marker([sbur.lat, sbur.lng]).addTo(window.map);
+    markerSBUR.bindTooltip(
+        `SBUR`,
         {
             permanent: true,
-            direction: "top",
-            offset: [0, -15]
+            direction: "bottom", // Exibe abaixo para limpar o topo da linha
+            offset: [0, 15],
+            className: "tooltip-sbur"
         }
     );
+
+    // 2. Destino: Recebe o Código ICAO, a Radial e a Distância
+    const markerDest = L.marker([latDest, lngDest]).addTo(window.map);
+    
+    const tooltipDestinoContent = `
+        <div style="text-align: center; font-weight: bold;">
+            ${icaoCode}<br>
+            <span style="font-weight: normal;">${formattedMagneticBearing}º ${distance}NM</span>
+        </div>
+    `;
+
+    markerDest.bindTooltip(
+        tooltipDestinoContent,
+        {
+            permanent: true,
+            direction: "top", // Exibe acima do ícone do destino
+            offset: [0, -15],
+            className: "tooltip-destino-navegacao"
+        }
+    );
+    // =========================================================
 
     L.polyline(
         [
