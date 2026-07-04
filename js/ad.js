@@ -328,14 +328,15 @@ async function fetchAeroportoInfo() {
     const markerSBUR =
         L.marker([sbur.lat, sbur.lng]).addTo(window.map);
 
-    markerSBUR.bindTooltip(
-        tooltipContent,
-        {
-            permanent: true,
-            direction: "top",
-            offset: [0, -15]
-        }
-    );
+markerSBUR.bindTooltip(
+    tooltipContent,
+    {
+        permanent: true,
+        direction: "top",
+        offset: [0, -15],
+        className: "tooltip-sbur"
+    }
+);;
 
     const markerDest =
         L.marker([latDest, lngDest]).addTo(window.map);
