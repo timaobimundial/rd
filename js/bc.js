@@ -6,6 +6,7 @@ const resultadoTableBody = document.getElementById('resultado-table-body');
 const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento.querySelector('img');
+const inputMarcaTopo = document.getElementById('marca');
 
 
 const API_URL = "https://project-i7r19.vercel.app/api/bc";
@@ -320,7 +321,7 @@ else if (rate > 400) {
 }
             }
 
-            aircraftData.push({
+aircraftData.push({
                 identifier,
                 aircraftType,
                 altitude: flStr,
@@ -333,7 +334,8 @@ else if (rate > 400) {
                 baro_rate: aircraft.baro_rate,
                 rumoMagnetic: rumoMagneticCalcStr,
                 latitude,
-                longitude
+                longitude,
+                registration: aircraft.r ? aircraft.r.trim() : '' // <--- Salva a matrícula original aqui
             });
         });
 
@@ -343,11 +345,27 @@ else if (rate > 400) {
 
         let existeAeronaveDestacada = false;
 
-        aircraftData.forEach(aircraft => {
+aircraftData.forEach(aircraft => {
             const row = resultadoTableBody.insertRow();
 
             const identifierCell = row.insertCell();
             identifierCell.textContent = aircraft.identifier;
+
+            // --- CONDIÇÕES DE CLIQUE ---
+            // Só executa se a matrícula ("registration") existir na API
+            if (aircraft.registration && aircraft.registration !== '') {
+                identifierCell.style.cursor = 'pointer'; // Cursor da mãozinha
+                identifierCell.title = `Clique para copiar a matrícula: ${aircraft.registration}`;
+
+                identifierCell.addEventListener('click', function () {
+                    if (inputMarcaTopo) {
+                        inputMarcaTopo.value = aircraft.registration; // Copia a matrícula real
+                        inputMarcaTopo.dispatchEvent(new Event('input', { bubbles: true })); // Aplica o seu uppercase do HTML
+                        inputMarcaTopo.focus(); // Joga o cursor dentro do input
+                    }
+                });
+            }
+            // ---------------------------
 
             const altitudeNaTabela = aircraft.altitude;
 
