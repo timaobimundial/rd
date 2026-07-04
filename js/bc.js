@@ -105,14 +105,25 @@ function abrirMapaAeronave(aircraft) {
         window.aircraftMap.removeLayer(aircraft.marker);
     }
 
-    const rotation = aircraft.rumoMagnetic !== '---' ? parseInt(aircraft.rumoMagnetic) - 22 : 0;
+// ==========================================
+    // ALTERADO: VERIFICAÇÃO DE RUMO PARA O ÍCONE
+    // ==========================================
+    let nomeImagemIcone = 'arq/planebcmap.png';
+    let rotation = 0;
+
+    if (aircraft.rumoMagnetic === '---') {
+        nomeImagemIcone = 'arq/int.png'; // Usa a imagem alternativa se não tiver rumo
+    } else {
+        rotation = parseInt(aircraft.rumoMagnetic) - 22; // Mantém a rotação normal se tiver rumo
+    }
 
     const planeIcon = L.divIcon({
         className: 'plane-div-icon',
-        html: `<img src="arq/planebcmap.png" style="transform: rotate(${rotation}deg); transform-origin:center;">`,
+        html: `<img src="${nomeImagemIcone}" style="transform: rotate(${rotation}deg); transform-origin:center;">`,
         iconSize: [16, 16],
         iconAnchor: [8, 8]
     });
+    // ==========================================
 
     const planeMarker = L.marker(
         [aircraft.latitude, aircraft.longitude],
