@@ -260,30 +260,20 @@ async function buscarAeronavesProximas() {
                 dentroPoligono = turf.booleanPointInPolygon(point, polygon);
             }
 
-let callsign = (aircraft.flight || '').trim();
-            let registration = (aircraft.r || '').trim().replace('-', '');
+const callsign = (aircraft.flight || '').trim();
+            const registration = (aircraft.r || '').trim().replace('-', '');
             
-            // Lista de prefixos brasileiros válidos
+            // Mantém a regra original para exibição na tabela:
+            const identifier = callsign || registration || '------';
+
+            // Filtro apenas para a função de copiar a matrícula:
             const prefixosBR = ['PP', 'PS', 'PT', 'PR', 'PU'];
-            
-            // Verifica se o flight ou o r começam com algum prefixo BR
-            const flightEhBR = prefixosBR.some(pref => callsign.startsWith(pref));
-            const rEhBR = prefixosBR.some(pref => registration.startsWith(pref));
-            
-            let identifier = '------';
             let matriculaValida = '';
 
-            // Regra do Filtro: Prioriza quem tiver o prefixo BR
-            if (flightEhBR) {
-                identifier = callsign;
-                matriculaValida = callsign; // Se o flight já é a matrícula BR
-            } else if (rEhBR) {
-                identifier = registration;
+            if (prefixosBR.some(pref => callsign.startsWith(pref))) {
+                matriculaValida = callsign; // Se o flight for a matrícula BR
+            } else if (prefixosBR.some(pref => registration.startsWith(pref))) {
                 matriculaValida = registration; // Se o r for a matrícula BR
-            } else {
-                // Se nenhum for BR, mantém o padrão anterior de exibição
-                identifier = callsign || registration || '------';
-                matriculaValida = registration; // Guarda o r caso exista
             }
 
             const altitudePes =
