@@ -149,20 +149,28 @@ function abrirMapaAeronave(aircraft) {
     window.linhasRumo.forEach(linha => window.aircraftMap.removeLayer(linha));
     window.linhasRumo = [];
 
-    // LÓGICA DE EXIBIÇÃO DAS LINHAS
-    if (window.aeronavesExibidas.length === 1) {
-        // Exibe apenas a linha para SBUR se houver apenas 1 avião ativo clicado
-        const linha = L.polyline(
+    // ==========================================
+    // ALTERADO: LÓGICA DE EXIBIÇÃO DAS LINHAS
+    // ==========================================
+    
+    // 1. Sempre desenha a linha conectando cada aeronave até SBUR (não some mais)
+    window.aeronavesExibidas.forEach(ac => {
+        const linhaSBUR = L.polyline(
             [
                 [sbur[1], sbur[0]],
-                [window.aeronavesExibidas[0].latitude, window.aeronavesExibidas[0].longitude]
+                [ac.latitude, ac.longitude]
             ],
-            { color: '#7fb0d4' }
+            { 
+                color: '#7fb0d4',
+                weight: 3
+            }
         ).addTo(window.aircraftMap);
 
-        window.linhasSBUR.push(linha);
-    } else if (window.aeronavesExibidas.length >= 2) {
-        // Se houver 2 ou mais, a linha SBUR não é gerada e desenha-se a linha de rumo no nariz de todos
+        window.linhasSBUR.push(linhaSBUR);
+    });
+
+    // 2. Se houver 2 ou mais aeronaves, calcula a linha do nariz mas mantém oculta com weight: 0
+    if (window.aeronavesExibidas.length >= 2) {
         window.aeronavesExibidas.forEach(ac => {
             const rumo = parseInt(ac.rumoMagnetic);
             if (isNaN(rumo)) return;
@@ -176,7 +184,7 @@ function abrirMapaAeronave(aircraft) {
                 { units: 'kilometers' }
             );
 
-            const linha = L.polyline(
+            const linhaNariz = L.polyline(
                 [
                     [ac.latitude, ac.longitude],
                     [
@@ -186,13 +194,14 @@ function abrirMapaAeronave(aircraft) {
                 ],
                 {
                     color: '#7fb0d4',
-                    weight: 0
+                    weight: 0 // <--- Oculta a linha do nariz mantendo a lógica ativa
                 }
             ).addTo(window.aircraftMap);
 
-            window.linhasRumo.push(linha);
+            window.linhasRumo.push(linhaNariz);
         });
     }
+    // ==========================================
         
     window.aircraftMap.fitBounds(bounds, {
         paddingTopLeft: [90, 90],
@@ -394,12 +403,11 @@ async function buscarAeronavesProximas() {
 
         // GATILHO DO BOTÃO DE FECHAR (X): Escuta quando o botão X do mapa for clicado
         setTimeout(() => {
-            // Busca por elementos dentro ou ao redor da div do mapa que contenham a letra 'X'
             const elementosDoMapa = document.querySelectorAll('#map button, #map .custom-close, #map div, .leaflet-control-container div');
             elementosDoMapa.forEach(el => {
                 if (el.textContent.trim() === 'X') {
                     el.addEventListener('click', () => {
-                        limparMapaCompleto(); // Zera os arrays de memória para a próxima consulta começar limpa
+                        limparMapaCompleto();
                         document.getElementById('map').style.display = 'none';
                     });
                 }
