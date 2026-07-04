@@ -236,14 +236,7 @@ align-items: center;
     overflow: hidden;
 }
         
-.leaflet-tooltip {
-            background-color: white;
-            border-radius: 3px;
-            padding: 5px;
-            font-size: 14px;
-            font-weight: bold;
-            color: black;
-        }
+
 
 .anac_box {
     width: 100%;
