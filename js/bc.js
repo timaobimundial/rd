@@ -260,21 +260,9 @@ async function buscarAeronavesProximas() {
                 dentroPoligono = turf.booleanPointInPolygon(point, polygon);
             }
 
-const callsign = (aircraft.flight || '').trim();
-            const registration = (aircraft.r || '').trim().replace('-', '');
-            
-            // Mantém a regra original para exibição na tabela:
+const callsign = aircraft.flight || '';
+            const registration = aircraft.r || '';
             const identifier = callsign || registration || '------';
-
-            // Filtro apenas para a função de copiar a matrícula:
-            const prefixosBR = ['PP', 'PS', 'PT', 'PR', 'PU'];
-            let matriculaValida = '';
-
-            if (prefixosBR.some(pref => callsign.startsWith(pref))) {
-                matriculaValida = callsign; // Se o flight for a matrícula BR
-            } else if (prefixosBR.some(pref => registration.startsWith(pref))) {
-                matriculaValida = registration; // Se o r for a matrícula BR
-            }
 
             const altitudePes =
                 aircraft.alt_baro != null && !isNaN(Number(aircraft.alt_baro))
@@ -346,8 +334,7 @@ aircraftData.push({
                 baro_rate: aircraft.baro_rate,
                 rumoMagnetic: rumoMagneticCalcStr,
                 latitude,
-                longitude,
-registration: aircraft.r ? aircraft.r.trim().replace('-', '') : '' // <--- Remove o hífen aqui
+                longitude
             });
         });
 
@@ -360,30 +347,8 @@ registration: aircraft.r ? aircraft.r.trim().replace('-', '') : '' // <--- Remov
 aircraftData.forEach(aircraft => {
             const row = resultadoTableBody.insertRow();
 
-            const identifierCell = row.insertCell();
+const identifierCell = row.insertCell();
             identifierCell.textContent = aircraft.identifier;
-
-            // --- CONDIÇÕES DE CLIQUE ---
-            // Só executa se a matrícula ("registration") existir na API
-// --- CONDIÇÕES DE CLIQUE ---
-            // Só ativa a mãozinha se a aeronave passou no filtro dos prefixos civis brasileiros
-            if (aircraft.registration && aircraft.registration !== '') {
-                identifierCell.style.cursor = 'pointer'; 
-                identifierCell.title = `Consultar na ANAC (RAB)`;
-
-                identifierCell.addEventListener('click', function () {
-                    if (inputMarcaTopo) {
-                        inputMarcaTopo.value = aircraft.registration; 
-                        inputMarcaTopo.dispatchEvent(new Event('input', { bubbles: true })); 
-                        inputMarcaTopo.focus(); 
-                    }
-                });
-            } else {
-                // Força o comportamento padrão caso não seja um prefixo válido
-                identifierCell.style.cursor = 'default';
-                identifierCell.removeAttribute('title');
-            }
-            // ---------------------------
 
             const altitudeNaTabela = aircraft.altitude;
 
