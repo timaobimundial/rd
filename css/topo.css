@@ -135,23 +135,7 @@ input[type=text] {
 
 
 
-.result {
-    font-size: 14px;
-    color: #2c6e99;
-    display: none;
-    font-weight: normal;
-    width: 100%;
-    max-width: 300px;
-    position: absolute;
-    top: 60px;
-    left: 203px;
-    text-align: center;
 
-    white-space: nowrap;      /* Não quebrar linha */
-    overflow: visible;        /* Permitir "vazar" para fora */
-    max-width: none;          /* Remove o limite de 300px */
-    width: auto;              /* Deixa a largura se ajustar ao conteúdo */
-}
 
 .tooltip-sbur {
     font-family: arial;
