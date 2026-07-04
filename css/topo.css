@@ -153,19 +153,6 @@ input[type=text] {
 }
 
 
-.tooltip-sbur {
-    font-family: arial;
-    font-size: 12px;
-	font-weight: bold;
-    color: #000;
-    line-height: 1;
-
-    background: #fff;
-    border: 0px solid #666;
-    border-radius: 4px;
-    padding: 3px;
-}
-
 
 
 
@@ -283,3 +270,24 @@ align-items: center;
     text-align: left;
     word-break: break-word;
 }
+
+
+
+.leaflet-tooltip {
+            font-weight: bold;
+        }
+
+.tooltip-sbur {
+    font-family: arial;
+    font-size: 12px;
+	font-weight: bold;
+    color: #000;
+    line-height: 1;
+
+    background: #fff;
+    border: 0px solid #666;
+    border-radius: 4px;
+    padding: 3px;
+}
+
+
