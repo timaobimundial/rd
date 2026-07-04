@@ -355,7 +355,7 @@ aircraftData.forEach(aircraft => {
             // Só executa se a matrícula ("registration") existir na API
             if (aircraft.registration && aircraft.registration !== '') {
                 identifierCell.style.cursor = 'pointer'; // Cursor da mãozinha
-                identifierCell.title = `Consultar na ANAC (RAB) ${aircraft.registration}`;
+                identifierCell.title = `Consultar na ANAC (RAB)`;
 
                 identifierCell.addEventListener('click', function () {
                     if (inputMarcaTopo) {
