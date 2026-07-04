@@ -316,14 +316,9 @@ async function fetchAeroportoInfo() {
         }
     ).addTo(window.map);
 
-    const tooltipContent =
-        `SBUR<br>
-        <span style="display:inline-block; width:50%; text-align:left">
-        ${formattedMagneticBearing}º
-        </span>
-        <span style="display:inline-block; width:50%; text-align:right">
-        ${distance}NM
-        </span>`;
+const tooltipContent =
+    `SBUR<br>
+    ${formattedMagneticBearing}º ${distance}NM`;
 
     const markerSBUR =
         L.marker([sbur.lat, sbur.lng]).addTo(window.map);
