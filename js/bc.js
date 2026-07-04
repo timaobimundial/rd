@@ -6,7 +6,6 @@ const resultadoTableBody = document.getElementById('resultado-table-body');
 const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento.querySelector('img');
-const inputMarcaTopo = document.getElementById('marca');
 
 
 const API_URL = "https://project-i7r19.vercel.app/api/bc";
@@ -260,7 +259,7 @@ async function buscarAeronavesProximas() {
                 dentroPoligono = turf.booleanPointInPolygon(point, polygon);
             }
 
-const callsign = aircraft.flight || '';
+            const callsign = aircraft.flight || '';
             const registration = aircraft.r || '';
             const identifier = callsign || registration || '------';
 
@@ -321,7 +320,7 @@ else if (rate > 400) {
 }
             }
 
-aircraftData.push({
+            aircraftData.push({
                 identifier,
                 aircraftType,
                 altitude: flStr,
@@ -344,10 +343,10 @@ aircraftData.push({
 
         let existeAeronaveDestacada = false;
 
-aircraftData.forEach(aircraft => {
+        aircraftData.forEach(aircraft => {
             const row = resultadoTableBody.insertRow();
 
-const identifierCell = row.insertCell();
+            const identifierCell = row.insertCell();
             identifierCell.textContent = aircraft.identifier;
 
             const altitudeNaTabela = aircraft.altitude;
@@ -410,31 +409,21 @@ altitudeCell.innerHTML = altitudeNaTabela;
             ? 'Radial e distância (✈️ na TMA)'
             : 'Radial e distância';
 
-resultadoTable.style.display = 'table';
+        resultadoTable.style.display = 'table';
         imagemCarregamento.style.display = 'none';
 
-        // GATILHO DO BOTÃO DE FECHAR (X): Garante que o botão exista e funcione
-        let botaoFechar = document.getElementById('map-close-btn');
-        if (!botaoFechar) {
-            botaoFechar = document.createElement('button');
-            botaoFechar.id = 'map-close-btn';
-            botaoFechar.innerText = 'X';
-            botaoFechar.style.position = 'absolute';
-            botaoFechar.style.top = '10px';
-            botaoFechar.style.right = '10px';
-            botaoFechar.style.zIndex = '10000';
-            botaoFechar.style.background = '#fff';
-            botaoFechar.style.border = '1px solid #ccc';
-            botaoFechar.style.padding = '5px 10px';
-            botaoFechar.style.cursor = 'pointer';
-            botaoFechar.style.fontWeight = 'bold';
-document.getElementById('map').appendChild(botaoFechar);
-        }
-        
-        botaoFechar.onclick = function() {
-            limparMapaCompleto();
-            document.getElementById('map').style.display = 'none';
-        };
+        // GATILHO DO BOTÃO DE FECHAR (X): Escuta quando o botão X do mapa for clicado
+        setTimeout(() => {
+            const elementosDoMapa = document.querySelectorAll('#map button, #map .custom-close, #map div, .leaflet-control-container div');
+            elementosDoMapa.forEach(el => {
+                if (el.textContent.trim() === 'X') {
+                    el.addEventListener('click', () => {
+                        limparMapaCompleto();
+                        document.getElementById('map').style.display = 'none';
+                    });
+                }
+            });
+        }, 500);
 
     } catch (err) {
         console.error(err);
