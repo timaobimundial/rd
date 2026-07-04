@@ -335,7 +335,7 @@ aircraftData.push({
                 rumoMagnetic: rumoMagneticCalcStr,
                 latitude,
                 longitude,
-                registration: aircraft.r ? aircraft.r.trim() : '' // <--- Salva a matrícula original aqui
+registration: aircraft.r ? aircraft.r.trim().replace('-', '') : '' // <--- Remove o hífen aqui
             });
         });
 
@@ -355,7 +355,7 @@ aircraftData.forEach(aircraft => {
             // Só executa se a matrícula ("registration") existir na API
             if (aircraft.registration && aircraft.registration !== '') {
                 identifierCell.style.cursor = 'pointer'; // Cursor da mãozinha
-                identifierCell.title = `Clique para copiar a matrícula: ${aircraft.registration}`;
+                identifierCell.title = `Consultar na ANAC (RAB) ${aircraft.registration}`;
 
                 identifierCell.addEventListener('click', function () {
                     if (inputMarcaTopo) {
