@@ -365,17 +365,23 @@ aircraftData.forEach(aircraft => {
 
             // --- CONDIÇÕES DE CLIQUE ---
             // Só executa se a matrícula ("registration") existir na API
+// --- CONDIÇÕES DE CLIQUE ---
+            // Só ativa a mãozinha se a aeronave passou no filtro dos prefixos civis brasileiros
             if (aircraft.registration && aircraft.registration !== '') {
-                identifierCell.style.cursor = 'pointer'; // Cursor da mãozinha
+                identifierCell.style.cursor = 'pointer'; 
                 identifierCell.title = `Consultar na ANAC (RAB)`;
 
                 identifierCell.addEventListener('click', function () {
                     if (inputMarcaTopo) {
-                        inputMarcaTopo.value = aircraft.registration; // Copia a matrícula real
-                        inputMarcaTopo.dispatchEvent(new Event('input', { bubbles: true })); // Aplica o seu uppercase do HTML
-                        inputMarcaTopo.focus(); // Joga o cursor dentro do input
+                        inputMarcaTopo.value = aircraft.registration; 
+                        inputMarcaTopo.dispatchEvent(new Event('input', { bubbles: true })); 
+                        inputMarcaTopo.focus(); 
                     }
                 });
+            } else {
+                // Força o comportamento padrão caso não seja um prefixo válido
+                identifierCell.style.cursor = 'default';
+                identifierCell.removeAttribute('title');
             }
             // ---------------------------
 
