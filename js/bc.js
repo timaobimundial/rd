@@ -260,9 +260,31 @@ async function buscarAeronavesProximas() {
                 dentroPoligono = turf.booleanPointInPolygon(point, polygon);
             }
 
-            const callsign = aircraft.flight || '';
-            const registration = aircraft.r || '';
-            const identifier = callsign || registration || '------';
+let callsign = (aircraft.flight || '').trim();
+            let registration = (aircraft.r || '').trim().replace('-', '');
+            
+            // Lista de prefixos brasileiros válidos
+            const prefixosBR = ['PP', 'PS', 'PT', 'PR', 'PU'];
+            
+            // Verifica se o flight ou o r começam com algum prefixo BR
+            const flightEhBR = prefixosBR.some(pref => callsign.startsWith(pref));
+            const rEhBR = prefixosBR.some(pref => registration.startsWith(pref));
+            
+            let identifier = '------';
+            let matriculaValida = '';
+
+            // Regra do Filtro: Prioriza quem tiver o prefixo BR
+            if (flightEhBR) {
+                identifier = callsign;
+                matriculaValida = callsign; // Se o flight já é a matrícula BR
+            } else if (rEhBR) {
+                identifier = registration;
+                matriculaValida = registration; // Se o r for a matrícula BR
+            } else {
+                // Se nenhum for BR, mantém o padrão anterior de exibição
+                identifier = callsign || registration || '------';
+                matriculaValida = registration; // Guarda o r caso exista
+            }
 
             const altitudePes =
                 aircraft.alt_baro != null && !isNaN(Number(aircraft.alt_baro))
