@@ -75,21 +75,26 @@ document.addEventListener('input', function(event) {
       return;
     }
 
+    // Períodos padrão (Segunda, Quarta, Quinta, Sexta)
     let periodos = [
       { inicio: '0415', fim: '0800' },
-      { inicio: '2345', fim: '0245' }
+      { inicio: '2345', fim: '0220' } // Corrigido para 0220
     ];
 
-    // Ajuste do primeiro período apenas nas terças
+    // Ajuste do primeiro período: Terça-feira muda o matutino
     if (diaSemana === 2) {
       periodos[0] = { inicio: '0440', fim: '0755' };
+    }
+    // Ajuste para Sábado e Domingo: Não têm o bloco matutino (04:15)
+    else if (diaSemana === 0 || diaSemana === 6) {
+      periodos = [{ inicio: '2345', fim: '0220' }];
     }
 
     function dentroDoPeriodo(p) {
       if (p.inicio <= p.fim) {
         return horaAtual >= p.inicio && horaAtual <= p.fim;
       } else {
-        // overnight
+        // Lógica de overnight (ex: 23:45 até 02:20 do dia seguinte)
         return horaAtual >= p.inicio || horaAtual <= p.fim;
       }
     }
@@ -102,12 +107,13 @@ document.addEventListener('input', function(event) {
       const periodoStr = `${periodo.inicio}-${periodo.fim}`;
       let ativo = dentroDoPeriodo(periodo);
 
-      // Exceção SBUL: domingo 23:45-23:59 e segunda 00:00-02:45
-      if (
-        (diaSemana === 0 && periodo.inicio === '2345' && horaAtual >= '2345') ||
-        (diaSemana === 1 && periodo.inicio === '2345' && horaAtual <= '0245')
-      ) {
-        ativo = false;
+      // Filtro dos dias para o bloco Overnight (23:45 - 02:20)
+      if (periodo.inicio === '2345') {
+        // Se for Domingo antes das 23:45 OU Segunda após as 02:20, desativa
+        if (diaSemana === 0 && horaAtual < '2345') ativo = false;
+        if (diaSemana === 1 && horaAtual > '0220') ativo = false;
+        // Sábado à noite NÃO vira para o domingo (conforme a regra SUN 0000-0220)
+        if (diaSemana === 6 && horaAtual >= '2345') ativo = false;
       }
 
       resultado += `<span class="periodo ${ativo ? 'ativo' : 'inativo'}">${periodoStr}</span> `;
@@ -119,6 +125,10 @@ document.addEventListener('input', function(event) {
   document.addEventListener('DOMContentLoaded', verificarPeriodoSBUL);
 </script>
 
+
+
+
+	
 <script>
   // -------------------- SBUR --------------------
   function verificarPeriodoSBUR() {
