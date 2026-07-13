@@ -322,6 +322,8 @@ else if (rate > 400) {
 
             aircraftData.push({
                 identifier,
+                callsign,       // <-- ADICIONE ESTA LINHA
+                registration,   // <-- ADICIONE ESTA LINHA
                 aircraftType,
                 altitude: flStr,
                 velocidade: velocidadKnots || '---',
@@ -348,6 +350,15 @@ else if (rate > 400) {
 
             const identifierCell = row.insertCell();
             identifierCell.textContent = aircraft.identifier;
+            // Lógica do Tooltip: mostra a informação que ficou de fora
+if (aircraft.callsign && aircraft.registration) {
+    if (aircraft.identifier === aircraft.callsign) {
+        identifierCell.title = `Matrícula: ${aircraft.registration}`;
+    } else {
+        // Se o exibido for a matrícula, mostra o CallSign
+        identifierCell.title = `Voo: ${aircraft.callsign}`;
+    }
+}
 
             const altitudeNaTabela = aircraft.altitude;
 
