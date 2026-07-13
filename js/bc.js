@@ -353,7 +353,7 @@ else if (rate > 400) {
             // Lógica do Tooltip: mostra a informação que ficou de fora
 if (aircraft.callsign && aircraft.registration) {
     if (aircraft.identifier === aircraft.callsign) {
-        identifierCell.title = `Matrícula: ${aircraft.registration}`;
+        identifierCell.title = `${aircraft.registration}`;
     } else {
         // Se o exibido for a matrícula, mostra o CallSign
         identifierCell.title = `Voo: ${aircraft.callsign}`;
