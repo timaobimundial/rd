@@ -149,10 +149,7 @@ function abrirMapaAeronave(aircraft) {
         window.markerSBUR = L.marker([sbur[1], sbur[0]]).addTo(window.aircraftMap);
     }
 
-const bounds = L.latLngBounds([[sbur[1], sbur[0]]]);
-    polygonCoordinates.forEach(coord => {
-        bounds.extend([coord[1], coord[0]]);
-    });
+    const bounds = L.latLngBounds([[sbur[1], sbur[0]]]);
     window.aeronavesExibidas.forEach(ac => {
         bounds.extend([ac.latitude, ac.longitude]);
     });
@@ -217,13 +214,14 @@ const bounds = L.latLngBounds([[sbur[1], sbur[0]]]);
     }
     // ==========================================
         
-// 1. Força o Leaflet a reconhecer o tamanho real e atualizado da DIV imediatamente
-    window.aircraftMap.invalidateSize();
-
-    // 2. Agora sim, calcula o encaixe perfeito com um padding seguro, mas pequeno (ex: 20px)
     window.aircraftMap.fitBounds(bounds, {
-        padding: [20, 20]
+        paddingTopLeft: [90, 90],
+        paddingBottomRight: [50, 50]
     });
+
+    setTimeout(() => {
+        window.aircraftMap.invalidateSize();
+    }, 100);
 }
 
 async function buscarAeronavesProximas() {
