@@ -217,14 +217,13 @@ const bounds = L.latLngBounds([[sbur[1], sbur[0]]]);
     }
     // ==========================================
         
-    window.aircraftMap.fitBounds(bounds, {
-        paddingTopLeft: [90, 90],
-        paddingBottomRight: [50, 50]
-    });
+// 1. Força o Leaflet a reconhecer o tamanho real e atualizado da DIV imediatamente
+    window.aircraftMap.invalidateSize();
 
-    setTimeout(() => {
-        window.aircraftMap.invalidateSize();
-    }, 100);
+    // 2. Agora sim, calcula o encaixe perfeito com um padding seguro, mas pequeno (ex: 20px)
+    window.aircraftMap.fitBounds(bounds, {
+        padding: [20, 20]
+    });
 }
 
 async function buscarAeronavesProximas() {
