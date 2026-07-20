@@ -34,6 +34,48 @@ window.aeronavesExibidas = [];
 window.linhasSBUR = [];
 window.linhasRumo = [];
 
+// Função auxiliar para projetar a rota e estimar o través (futuro ou passado)
+function calcularDadosTraves(aircraftLat, aircraftLon, rumoVerdadeiro, velocidadeKnots, sburCoords) {
+    if (!rumoVerdadeiro || isNaN(rumoVerdadeiro) || !velocidadeKnots || velocidadeKnots <= 0) {
+        return null;
+    }
+
+    const pontoAtual = turf.point([aircraftLon, aircraftLat]);
+    const pontoSBUR = turf.point(sburCoords);
+
+    // Projeta 500km para frente e para trás para garantir interceptação do través
+    const pontoFuturo = turf.destination(pontoAtual, 500, rumoVerdadeiro, { units: 'kilometers' });
+    const pontoPassado = turf.destination(pontoAtual, -500, rumoVerdadeiro, { units: 'kilometers' });
+    
+    const trajetoriaLinha = turf.lineString([
+        pontoPassado.geometry.coordinates, 
+        pontoAtual.geometry.coordinates, 
+        pontoFuturo.geometry.coordinates
+    ]);
+
+    const traves = turf.nearestPointOnLine(trajetoriaLinha, pontoSBUR);
+
+    const rumoAteTraves = turf.bearing(pontoAtual, traves);
+    const diferencaRumo = Math.abs(((rumoAteTraves - rumoVerdadeiro + 180 + 360) % 360) - 180);
+    const jaPassou = diferencaRumo > 90;
+
+    const distanciaKM = turf.distance(pontoAtual, traves, { units: 'kilometers' });
+    const distanciaNM = distanciaKM * 0.539957;
+
+    const tempoMinutos = Math.round((distanciaNM / velocidadeKnots) * 60);
+
+    const agora = new Date();
+    const horaTraves = new Date(agora.getTime() + (jaPassou ? -tempoMinutos : tempoMinutos) * 60000);
+    const horaFormatada = horaTraves.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+    return {
+        coordenadas: [traves.geometry.coordinates[1], traves.geometry.coordinates[0]],
+        jaPassou: jaPassou,
+        minutos: tempoMinutos,
+        hora: horaFormatada
+    };
+}
+
 // Limpa de forma absoluta todas as camadas do Leaflet e reseta os arrays de memória
 function limparMapaCompleto() {
     if (window.aircraftMap) {
@@ -94,7 +136,6 @@ function abrirMapaAeronave(aircraft) {
 
         L.polygon(polygonLatLng, {
             color: 'gray',
-            fillColor: 'lightgray',
             fillOpacity: 0.5,
             weight: 0.5
         }).addTo(window.aircraftMap);
@@ -105,16 +146,16 @@ function abrirMapaAeronave(aircraft) {
         window.aircraftMap.removeLayer(aircraft.marker);
     }
 
-// ==========================================
-    // ALTERADO: VERIFICAÇÃO DE RUMO PARA O ÍCONE
+    // ==========================================
+    // VERIFICAÇÃO DE RUMO PARA O ÍCONE
     // ==========================================
     let nomeImagemIcone = 'arq/planebcmap.png';
     let rotation = 0;
 
     if (aircraft.rumoMagnetic === '---') {
-        nomeImagemIcone = 'arq/int.png'; // Usa a imagem alternativa se não tiver rumo
+        nomeImagemIcone = 'arq/int.png';
     } else {
-        rotation = parseInt(aircraft.rumoMagnetic) - 22; // Mantém a rotação normal se tiver rumo
+        rotation = parseInt(aircraft.rumoMagnetic) - 22;
     }
 
     const planeIcon = L.divIcon({
@@ -123,7 +164,6 @@ function abrirMapaAeronave(aircraft) {
         iconSize: [16, 16],
         iconAnchor: [8, 8]
     });
-    // ==========================================
 
     const planeMarker = L.marker(
         [aircraft.latitude, aircraft.longitude],
@@ -145,6 +185,42 @@ function abrirMapaAeronave(aircraft) {
         }
     );
 
+    // ==========================================
+    // ADICIONADO: LOGICA HOVER DO TRAVÉS
+    // ==========================================
+    const rumoVerdadeiro = (parseInt(aircraft.rumoMagnetic) - 22 + 360) % 360;
+    const dadosTraves = calcularDadosTraves(aircraft.latitude, aircraft.longitude, rumoVerdadeiro, aircraft.velocidade, sbur);
+
+    if (dadosTraves) {
+        // Marcador invisível para ancorar o Tooltip geométrico do através
+        const travesMarker = L.circleMarker(dadosTraves.coordenadas, {
+            radius: 0,
+            weight: 0,
+            fillOpacity: 0
+        }).addTo(window.aircraftMap);
+
+        const sinal = dadosTraves.jaPassou ? "-" : "+";
+        const textoTooltip = `${sinal}${dadosTraves.minutos}<br>${dadosTraves.hora}`;
+
+        travesMarker.bindTooltip(textoTooltip, {
+            permanent: false,
+            direction: "top",
+            className: "tooltip-traves"
+        });
+
+        // Eventos para acionar via hover no marcador principal da aeronave
+        planeMarker.on('mouseover', function () {
+            travesMarker.openTooltip();
+        });
+
+        planeMarker.on('mouseout', function () {
+            travesMarker.closeTooltip();
+        });
+
+        window.linhasRumo.push(travesMarker); 
+    }
+    // ==========================================
+
     if (!window.markerSBUR || !window.aircraftMap.hasLayer(window.markerSBUR)) {
         window.markerSBUR = L.marker([sbur[1], sbur[0]]).addTo(window.aircraftMap);
     }
@@ -157,14 +233,14 @@ function abrirMapaAeronave(aircraft) {
     // Limpa as linhas antigas para reavaliar o cenário atualizado
     window.linhasSBUR.forEach(linha => window.aircraftMap.removeLayer(linha));
     window.linhasSBUR = [];
-    window.linhasRumo.forEach(linha => window.aircraftMap.removeLayer(linha));
+    
+    // Remove também objetos antigos de através salvos no array
+    window.linhasRumo.forEach(layer => {
+        if (layer && window.aircraftMap.hasLayer(layer)) window.aircraftMap.removeLayer(layer);
+    });
     window.linhasRumo = [];
 
-    // ==========================================
-    // ALTERADO: LÓGICA DE EXIBIÇÃO DAS LINHAS
-    // ==========================================
-    
-    // 1. Sempre desenha a linha conectando cada aeronave até SBUR (não some mais)
+    // Sempre desenha a linha conectando cada aeronave até SBUR
     window.aeronavesExibidas.forEach(ac => {
         const linhaSBUR = L.polyline(
             [
@@ -180,7 +256,7 @@ function abrirMapaAeronave(aircraft) {
         window.linhasSBUR.push(linhaSBUR);
     });
 
-    // 2. Se houver 2 ou mais aeronaves, calcula a linha do nariz mas mantém oculta com weight: 0
+    // Mantido comportamento estrutural se houver mais de 2 aeronaves expostas
     if (window.aeronavesExibidas.length >= 2) {
         window.aeronavesExibidas.forEach(ac => {
             const rumo = parseInt(ac.rumoMagnetic);
@@ -205,14 +281,13 @@ function abrirMapaAeronave(aircraft) {
                 ],
                 {
                     color: '#7fb0d4',
-                    weight: 0 // <--- Oculta a linha do nariz mantendo a lógica ativa
+                    weight: 0 
                 }
             ).addTo(window.aircraftMap);
 
             window.linhasRumo.push(linhaNariz);
         });
     }
-    // ==========================================
         
     window.aircraftMap.fitBounds(bounds, {
         paddingTopLeft: [90, 90],
@@ -225,7 +300,6 @@ function abrirMapaAeronave(aircraft) {
 }
 
 async function buscarAeronavesProximas() {
-    // Quando uma nova consulta global for disparada na tabela pelo temporizador, zera o mapa
     limparMapaCompleto();
 
     const sburLongitude = sbur[0];
@@ -309,21 +383,21 @@ async function buscarAeronavesProximas() {
 
                 const rate = aircraft.baro_rate;
 
-if (rate == null || Math.abs(rate) <= 400) {
-    flStr = 'F' + flStrTemp;
-}
-else if (rate < -400) {
-    flStr = `<span style="vertical-align: middle; display: inline-block; margin-top: -2px;">↘</span>` + flStrTemp;
-}
-else if (rate > 400) {
-    flStr = `<span style="vertical-align: middle; display: inline-block; margin-top: -2px;">↗</span>` + flStrTemp;
-}
+                if (rate == null || Math.abs(rate) <= 400) {
+                    flStr = 'F' + flStrTemp;
+                }
+                else if (rate < -400) {
+                    flStr = `<span style="vertical-align: middle; display: inline-block; margin-top: -2px;">↘</span>` + flStrTemp;
+                }
+                else if (rate > 400) {
+                    flStr = `<span style="vertical-align: middle; display: inline-block; margin-top: -2px;">↗</span>` + flStrTemp;
+                }
             }
 
             aircraftData.push({
                 identifier,
-                callsign,       // <-- ADICIONE ESTA LINHA
-                registration,   // <-- ADICIONE ESTA LINHA
+                callsign,       
+                registration,   
                 aircraftType,
                 altitude: flStr,
                 velocidade: velocidadKnots || '---',
@@ -350,15 +424,14 @@ else if (rate > 400) {
 
             const identifierCell = row.insertCell();
             identifierCell.textContent = aircraft.identifier;
-            // Lógica do Tooltip: mostra a informação que ficou de fora
-if (aircraft.callsign && aircraft.registration) {
-    if (aircraft.identifier === aircraft.callsign) {
-        identifierCell.title = `${aircraft.registration}`;
-    } else {
-        // Se o exibido for a matrícula, mostra o CallSign
-        identifierCell.title = `Voo: ${aircraft.callsign}`;
-    }
-}
+
+            if (aircraft.callsign && aircraft.registration) {
+                if (aircraft.identifier === aircraft.callsign) {
+                    identifierCell.title = `${aircraft.registration}`;
+                } else {
+                    identifierCell.title = `Voo: ${aircraft.callsign}`;
+                }
+            }
 
             const altitudeNaTabela = aircraft.altitude;
 
@@ -374,7 +447,7 @@ if (aircraft.callsign && aircraft.registration) {
             row.insertCell().textContent = aircraft.aircraftType;
             
             const altitudeCell = row.insertCell();
-altitudeCell.innerHTML = altitudeNaTabela;
+            altitudeCell.innerHTML = altitudeNaTabela;
 
             if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
                 altitudeCell.style.cursor = 'progress';
@@ -423,7 +496,6 @@ altitudeCell.innerHTML = altitudeNaTabela;
         resultadoTable.style.display = 'table';
         imagemCarregamento.style.display = 'none';
 
-        // GATILHO DO BOTÃO DE FECHAR (X): Escuta quando o botão X do mapa for clicado
         setTimeout(() => {
             const elementosDoMapa = document.querySelectorAll('#map button, #map .custom-close, #map div, .leaflet-control-container div');
             elementosDoMapa.forEach(el => {
