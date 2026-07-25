@@ -37,3 +37,41 @@
     border-radius: 4px;
     padding: 3px;
 }
+/* Input flutuante minimalista abaixo do avião */
+.input-estimado-plane {
+    background: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #333;
+    outline: none;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    text-transform: uppercase;
+    width: 65px;
+    text-align: center;
+}
+
+/* Tooltip / Marcador de Resultado (ex: • ISRIK +09' 11:33) */
+.tooltip-estimado-resultado {
+    background: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #000;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    white-space: nowrap;
+}
+
+/* Bolinha pontual no mapa (•) */
+.ponto-marcador-icon {
+    background: #000;
+    border-radius: 50%;
+    width: 8px;
+    height: 8px;
+    border: 1px solid #fff;
+    box-shadow: 0 0 3px rgba(0,0,0,0.5);
+}
