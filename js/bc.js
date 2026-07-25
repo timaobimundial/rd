@@ -184,7 +184,7 @@ planeMarker.on('click', function(e) {
 // Abre o input com o botão "X" azul e redondo posicionado do lado de fora (à direita)
         const inputHtml = `
             <div style="position: relative; display: inline-flex; align-items: center;">
-                <input type="text" class="input-estimado-plane" placeholder="" id="input_est_${aircraft.identifier}" maxlength="5" style="width: 53px; padding: 2px 4px; font-size: 11px; background-color: #ffffff !important; color: #000000 !important; border: 1px solid #ccc; border-radius: 3px; outline: none; box-sizing: border-box;">
+                <input type="text" class="input-estimado-plane" placeholder="AD ou FIXO" id="input_est_${aircraft.identifier}" maxlength="5" style="width: 53px; padding: 2px 4px; font-size: 11px; background-color: #ffffff !important; color: #000000 !important; border: 1px solid #ccc; border-radius: 3px; outline: none; box-sizing: border-box;">
                 <button id="btn_clear_${aircraft.identifier}" style="position: absolute; left: 100%; margin-left: 4px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; background-color: #7fb0d4; color: white; border: none; border-radius: 50%; font-size: 10px; line-height: 14px; text-align: center; cursor: pointer; padding: 0; display: none; z-index: 9999;">×</button>
             </div>
         `;
