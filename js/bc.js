@@ -7,7 +7,6 @@ const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento.querySelector('img');
 
-
 const API_URL = "https://project-i7r19.vercel.app/api/bc";
 
 // polígono SBUR
@@ -33,9 +32,20 @@ window.aircraftMap = null;
 window.aeronavesExibidas = [];
 window.linhasSBUR = [];
 window.linhasRumo = [];
+window.estimadosMarkers = []; // Armazena marcadores dos estimados
+
+// Limpa marcadores de estimado da tela
+function limparEstimadosAtuais() {
+    if (window.estimadosMarkers && window.aircraftMap) {
+        window.estimadosMarkers.forEach(m => window.aircraftMap.removeLayer(m));
+    }
+    window.estimadosMarkers = [];
+}
 
 // Limpa de forma absoluta todas as camadas do Leaflet e reseta os arrays de memória
 function limparMapaCompleto() {
+    limparEstimadosAtuais();
+
     if (window.aircraftMap) {
         if (window.linhasSBUR) {
             window.linhasSBUR.forEach(linha => window.aircraftMap.removeLayer(linha));
@@ -46,6 +56,7 @@ function limparMapaCompleto() {
         if (window.aeronavesExibidas) {
             window.aeronavesExibidas.forEach(ac => {
                 if (ac.marker) window.aircraftMap.removeLayer(ac.marker);
+                if (ac.inputMarker) window.aircraftMap.removeLayer(ac.inputMarker);
             });
         }
     }
@@ -105,8 +116,8 @@ function abrirMapaAeronave(aircraft) {
         window.aircraftMap.removeLayer(aircraft.marker);
     }
 
-// ==========================================
-    // ALTERADO: VERIFICAÇÃO DE RUMO PARA O ÍCONE
+    // ==========================================
+    // VERIFICAÇÃO DE RUMO PARA O ÍCONE
     // ==========================================
     let nomeImagemIcone = 'arq/planebcmap.png';
     let rotation = 0;
@@ -123,7 +134,6 @@ function abrirMapaAeronave(aircraft) {
         iconSize: [16, 16],
         iconAnchor: [8, 8]
     });
-    // ==========================================
 
     const planeMarker = L.marker(
         [aircraft.latitude, aircraft.longitude],
@@ -145,6 +155,85 @@ function abrirMapaAeronave(aircraft) {
         }
     );
 
+    // ==========================================
+    // CLIQUE NO AVIÃO DO MAPA (INPUT FLUTUANTE)
+    // ==========================================
+planeMarker.on('click', function(e) {
+        L.DomEvent.stopPropagation(e);
+
+        // Se o avião já tinha input aberto, o clique funciona como toggle (fecha)
+        if (aircraft.inputMarker) {
+            window.aircraftMap.removeLayer(aircraft.inputMarker);
+            aircraft.inputMarker = null;
+            limparEstimadosAtuais();
+            return;
+        }
+    
+        // LIMPEZA: Fecha o input e os estimados de qualquer OUTRO avião ativo
+        if (window.aeronavesExibidas) {
+            window.aeronavesExibidas.forEach(ac => {
+                if (ac.inputMarker) {
+                    window.aircraftMap.removeLayer(ac.inputMarker);
+                    ac.inputMarker = null;
+                }
+            });
+        }
+        limparEstimadosAtuais();
+
+// Abre o input com o botão "X" azul e redondo posicionado do lado de fora (à direita)
+        const inputHtml = `
+            <div style="position: relative; display: inline-flex; align-items: center;">
+                <input type="text" class="input-estimado-plane" placeholder="" id="input_est_${aircraft.identifier}" maxlength="5" style="width: 53px; padding: 2px 4px; font-size: 11px; background-color: #ffffff !important; color: #000000 !important; border: 1px solid #ccc; border-radius: 3px; outline: none; box-sizing: border-box;">
+                <button id="btn_clear_${aircraft.identifier}" style="position: absolute; left: 100%; margin-left: 4px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; background-color: #7fb0d4; color: white; border: none; border-radius: 50%; font-size: 10px; line-height: 14px; text-align: center; cursor: pointer; padding: 0; display: none; z-index: 9999;">×</button>
+            </div>
+        `;
+
+        const inputIcon = L.divIcon({
+            className: 'custom-input-container',
+            html: inputHtml,
+            iconSize: [66, 22],
+            iconAnchor: [17, -22]
+        });
+
+        aircraft.inputMarker = L.marker([aircraft.latitude, aircraft.longitude], { icon: inputIcon }).addTo(window.aircraftMap);
+
+        setTimeout(() => {
+            const elInput = document.getElementById(`input_est_${aircraft.identifier}`);
+            const btnClear = document.getElementById(`btn_clear_${aircraft.identifier}`);
+
+            if (elInput) {
+                elInput.focus();
+                
+                elInput.addEventListener('input', function() {
+                    const val = elInput.value.trim().toUpperCase();
+                    if (val.length > 0) {
+                        if (btnClear) btnClear.style.display = 'block';
+                    } else {
+                        if (btnClear) btnClear.style.display = 'none';
+                    }
+                    processarComandoEstimado(aircraft, val);
+                });
+
+                elInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        elInput.blur();
+                    }
+                });
+            }
+
+            if (btnClear) {
+                btnClear.addEventListener('click', function(e) {
+                    L.DomEvent.stopPropagation(e);
+                    if (aircraft.inputMarker) {
+                        window.aircraftMap.removeLayer(aircraft.inputMarker);
+                        aircraft.inputMarker = null;
+                    }
+                    limparEstimadosAtuais();
+                });
+            }
+        }, 100);
+    });
+
     if (!window.markerSBUR || !window.aircraftMap.hasLayer(window.markerSBUR)) {
         window.markerSBUR = L.marker([sbur[1], sbur[0]]).addTo(window.aircraftMap);
     }
@@ -161,10 +250,10 @@ function abrirMapaAeronave(aircraft) {
     window.linhasRumo = [];
 
     // ==========================================
-    // ALTERADO: LÓGICA DE EXIBIÇÃO DAS LINHAS
+    // LÓGICA DE EXIBIÇÃO DAS LINHAS
     // ==========================================
     
-    // 1. Sempre desenha a linha conectando cada aeronave até SBUR (não some mais)
+    // 1. Sempre desenha a linha conectando cada aeronave até SBUR
     window.aeronavesExibidas.forEach(ac => {
         const linhaSBUR = L.polyline(
             [
@@ -205,14 +294,13 @@ function abrirMapaAeronave(aircraft) {
                 ],
                 {
                     color: '#7fb0d4',
-                    weight: 0 // <--- Oculta a linha do nariz mantendo a lógica ativa
+                    weight: 0 // Oculta a linha do nariz mantendo a lógica ativa
                 }
             ).addTo(window.aircraftMap);
 
             window.linhasRumo.push(linhaNariz);
         });
     }
-    // ==========================================
         
     window.aircraftMap.fitBounds(bounds, {
         paddingTopLeft: [90, 90],
@@ -309,21 +397,21 @@ async function buscarAeronavesProximas() {
 
                 const rate = aircraft.baro_rate;
 
-if (rate == null || Math.abs(rate) <= 400) {
-    flStr = 'F' + flStrTemp;
-}
-else if (rate < -400) {
-    flStr = `<span style="vertical-align: middle; display: inline-block; margin-top: -2px;">↘</span>` + flStrTemp;
-}
-else if (rate > 400) {
-    flStr = `<span style="vertical-align: middle; display: inline-block; margin-top: -2px;">↗</span>` + flStrTemp;
-}
+                if (rate == null || Math.abs(rate) <= 400) {
+                    flStr = 'F' + flStrTemp;
+                }
+                else if (rate < -400) {
+                    flStr = `<span style="vertical-align: middle; display: inline-block; margin-top: -2px;">↘</span>` + flStrTemp;
+                }
+                else if (rate > 400) {
+                    flStr = `<span style="vertical-align: middle; display: inline-block; margin-top: -2px;">↗</span>` + flStrTemp;
+                }
             }
 
             aircraftData.push({
                 identifier,
-                callsign,       // <-- ADICIONE ESTA LINHA
-                registration,   // <-- ADICIONE ESTA LINHA
+                callsign,
+                registration,
                 aircraftType,
                 altitude: flStr,
                 velocidade: velocidadKnots || '---',
@@ -350,15 +438,14 @@ else if (rate > 400) {
 
             const identifierCell = row.insertCell();
             identifierCell.textContent = aircraft.identifier;
-            // Lógica do Tooltip: mostra a informação que ficou de fora
-if (aircraft.callsign && aircraft.registration) {
-    if (aircraft.identifier === aircraft.callsign) {
-        identifierCell.title = `${aircraft.registration}`;
-    } else {
-        // Se o exibido for a matrícula, mostra o CallSign
-        identifierCell.title = `Voo: ${aircraft.callsign}`;
-    }
-}
+            
+            if (aircraft.callsign && aircraft.registration) {
+                if (aircraft.identifier === aircraft.callsign) {
+                    identifierCell.title = `${aircraft.registration}`;
+                } else {
+                    identifierCell.title = `Voo: ${aircraft.callsign}`;
+                }
+            }
 
             const altitudeNaTabela = aircraft.altitude;
 
@@ -374,7 +461,7 @@ if (aircraft.callsign && aircraft.registration) {
             row.insertCell().textContent = aircraft.aircraftType;
             
             const altitudeCell = row.insertCell();
-altitudeCell.innerHTML = altitudeNaTabela;
+            altitudeCell.innerHTML = altitudeNaTabela;
 
             if (aircraft.baro_rate != null && Math.abs(aircraft.baro_rate) > 400) {
                 altitudeCell.style.cursor = 'progress';
@@ -423,7 +510,7 @@ altitudeCell.innerHTML = altitudeNaTabela;
         resultadoTable.style.display = 'table';
         imagemCarregamento.style.display = 'none';
 
-        // GATILHO DO BOTÃO DE FECHAR (X): Escuta quando o botão X do mapa for clicado
+        // GATILHO DO BOTÃO DE FECHAR (X)
         setTimeout(() => {
             const elementosDoMapa = document.querySelectorAll('#map button, #map .custom-close, #map div, .leaflet-control-container div');
             elementosDoMapa.forEach(el => {
@@ -444,3 +531,161 @@ altitudeCell.innerHTML = altitudeNaTabela;
 }
 
 document.addEventListener('DOMContentLoaded', buscarAeronavesProximas);
+
+// =========================================================
+// FUNÇÕES AUXILIARES DE CÁLCULO E EXIBIÇÃO DE ESTIMADOS
+// =========================================================
+async function processarComandoEstimado(aircraft, comando) {
+    limparEstimadosAtuais();
+
+    if (!comando) return;
+
+    let isTraves = false;
+    let termo = comando;
+
+    // RECURSO DE TRAVÉS ("T ") DESATIVADO TEMPORARIAMENTE
+    if (comando.startsWith('T ')) {
+        return; // Anula a execução se tentar usar través
+    }
+
+    if (!termo) return;
+
+    // Validação: executa apenas para códigos ICAO (4 letras) ou Fixos (5 letras)
+    if (termo.length < 4 || termo.length > 5) return;
+
+    let destLat = null, destLng = null, nomePonto = termo;
+
+    if (termo === 'SBUR') {
+        destLat = sbur[1];
+        destLng = sbur[0];
+    } else if (termo.length === 5 && typeof fixes !== 'undefined' && fixes.length > 0) {
+        const fixEncontrado = fixes.find(f => f.ident === termo);
+        if (fixEncontrado) {
+            destLat = fixEncontrado.lat;
+            destLng = fixEncontrado.lng;
+        }
+    } else if (termo.length === 4) {
+        try {
+            const apiUrl = `https://aisweb.decea.mil.br/api/?apiKey=1505393075&apiPass=1f301b84-0a7c-11ed-9f5b-0050569ac2e1&area=rotaer&icaoCode=${termo}`;
+            const response = await fetch(apiUrl);
+            const xmlText = await response.text();
+            
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+            destLat = parseFloat(
+                xmlDoc.querySelector("lat")?.textContent ||
+                xmlDoc.querySelector("latRotaer")?.textContent
+            );
+            destLng = parseFloat(
+                xmlDoc.querySelector("lng")?.textContent ||
+                xmlDoc.querySelector("lngRotaer")?.textContent
+            );
+
+            if (isNaN(destLat) || isNaN(destLng)) {
+                destLat = null;
+                destLng = null;
+            }
+        } catch (e) {
+            destLat = null;
+            destLng = null;
+        }
+    }
+
+    if (destLat === null || destLng === null) return;
+
+    const gs = parseFloat(aircraft.velocidade);
+    if (isNaN(gs) || gs <= 0) return;
+
+    const pontoAviao = turf.point([aircraft.longitude, aircraft.latitude]);
+    let distNM = 0;
+
+    if (!isTraves) {
+        const pontoDestino = turf.point([destLng, destLat]);
+        const distKM = turf.distance(pontoAviao, pontoDestino, { units: 'kilometers' });
+        distNM = distKM * 0.539957;
+
+        desenharPontoEstimado(destLat, destLng, `${nomePonto}`, distNM, gs);
+
+    } else {
+        const rumoMag = parseInt(aircraft.rumoMagnetic);
+        if (isNaN(rumoMag)) return;
+
+        // Ajuste exato da declinação magnética (-22°)
+        const rumoVerdadeiro = (rumoMag - 22 + 360) % 360;
+        
+        const pontoProjetado = turf.destination(pontoAviao, 1000, rumoVerdadeiro, { units: 'kilometers' });
+        const linhaVoo = turf.lineString([[aircraft.longitude, aircraft.latitude], pontoProjetado.geometry.coordinates]);
+        
+        const pontoRef = turf.point([destLng, destLat]);
+        const pontoTraves = turf.nearestPointOnLine(linhaVoo, pontoRef);
+
+        const lngFinal = pontoTraves.geometry.coordinates[0];
+        const latFinal = pontoTraves.geometry.coordinates[1];
+
+        const distKM = turf.distance(pontoAviao, pontoTraves, { units: 'kilometers' });
+        distNM = distKM * 0.539957;
+
+        desenharSimplesPonto(destLat, destLng);
+        desenharPontoEstimado(latFinal, lngFinal, `TRAVÉS ${nomePonto}`, distNM, gs);
+    }
+}
+
+function desenharSimplesPonto(lat, lng) {
+    const iconPonto = L.divIcon({
+        className: 'ponto-marcador-icon',
+        iconSize: [8, 8],
+        iconAnchor: [4, 4]
+    });
+    const m = L.marker([lat, lng], { icon: iconPonto }).addTo(window.aircraftMap);
+    window.estimadosMarkers.push(m);
+}
+
+function desenharPontoEstimado(lat, lng, titulo, distNM, gs) {
+    const tempoHoras = distNM / gs;
+    const tempoMinutosTotal = Math.round(tempoHoras * 60);
+
+    const agora = new Date();
+    agora.setMinutes(agora.getMinutes() + tempoMinutosTotal);
+
+    const horasStr = agora.getHours().toString().padStart(2, '0');
+    const minStr = agora.getMinutes().toString().padStart(2, '0');
+    const minDiferencaStr = tempoMinutosTotal.toString().padStart(2, '0');
+
+    const textoEtiqueta = `${titulo} +${minDiferencaStr}' ${horasStr}:${minStr}`;
+
+    const iconPonto = L.divIcon({
+        className: 'ponto-marcador-icon',
+        iconSize: [8, 8],
+        iconAnchor: [4, 4]
+    });
+
+const markerPonto = L.marker([lat, lng], { icon: iconPonto }).addTo(window.aircraftMap);
+
+    markerPonto.bindTooltip(textoEtiqueta, {
+        permanent: true,
+        direction: "right",
+        offset: [10, 0],
+        className: "tooltip-estimado-resultado"
+    });
+
+    window.estimadosMarkers.push(markerPonto);
+
+    // Ajusta o zoom do mapa para enquadrar também o ponto estimado gerado
+    if (window.aircraftMap) {
+        const boundsAtual = L.latLngBounds([[sbur[1], sbur[0]]]);
+        
+        // Inclui as aeronaves exibidas
+        if (window.aeronavesExibidas) {
+            window.aeronavesExibidas.forEach(ac => boundsAtual.extend([ac.latitude, ac.longitude]));
+        }
+        
+        // Inclui o novo ponto estimado
+        boundsAtual.extend([lat, lng]);
+
+        window.aircraftMap.fitBounds(boundsAtual, {
+            paddingTopLeft: [90, 90],
+            paddingBottomRight: [50, 50]
+        });
+    }
+}
