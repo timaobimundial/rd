@@ -60,68 +60,67 @@ document.addEventListener('input', function(event) {
 
 
 <script>
-  // -------------------- SBUL --------------------
-  function verificarPeriodoSBUL() {
-    const agora = new Date();
-    const diaSemana = agora.getUTCDay(); // 0 = domingo, 1 = segunda ...
-    const hora = agora.getUTCHours().toString().padStart(2, '0');
-    const minuto = agora.getUTCMinutes().toString().padStart(2, '0');
-    const horaAtual = hora + minuto;
+// -------------------- SBUL --------------------
+function verificarPeriodoSBUL() {
+  const agora = new Date();
+  const diaSemana = agora.getUTCDay(); // 0 = domingo, 1 = segunda ...
+  const hora = agora.getUTCHours().toString().padStart(2, '0');
+  const minuto = agora.getUTCMinutes().toString().padStart(2, '0');
+  const horaAtual = hora + minuto;
 
-    // Data limite: 30/11/2026 11:50 UTC
-    const dataFinal = new Date(Date.UTC(2026, 10, 30, 11, 50));
-    if (agora.getTime() >= dataFinal.getTime()) {
-      document.getElementById('saida').innerHTML = '';
-      return;
-    }
-
-    // Períodos padrão (Segunda, Quarta, Quinta, Sexta)
-    let periodos = [
-      { inicio: '0415', fim: '0800' },
-      { inicio: '2345', fim: '0220' }
-    ];
-
-    // Ajuste do primeiro período: Terça-feira muda o matutino
-    if (diaSemana === 2) {
-      periodos[0] = { inicio: '0440', fim: '0755' };
-    }
-    // Ajuste para Sábado e Domingo: Não têm o bloco matutino das 04:15
-    else if (diaSemana === 0 || diaSemana === 6) {
-      periodos = [{ inicio: '2345', fim: '0220' }];
-    }
-
-    function dentroDoPeriodo(p) {
-      if (p.inicio <= p.fim) {
-        return horaAtual >= p.inicio && horaAtual <= p.fim;
-      } else {
-        // Lógica de overnight (ex: 23:45 até 02:20 do dia seguinte)
-        return horaAtual >= p.inicio || horaAtual <= p.fim;
-      }
-    }
-
-    const texto = 'SBUL CLSD';
-    let resultado = `<span class="texto-principal">${texto}</span> `;
-
-    for (let i = 0; i < periodos.length; i++) {
-      const periodo = periodos[i];
-      const periodoStr = `${periodo.inicio}-${periodo.fim}`;
-      let ativo = dentroDoPeriodo(periodo);
-
-      // Filtro dos dias para o bloco Overnight (23:45 - 02:20)
-      if (periodo.inicio === '2345') {
-        // Se for Domingo antes das 23:45 OU Segunda após as 02:20, desativa
-        if (diaSemana === 0 && horaAtual < '2345') ativo = false;
-        if (diaSemana === 1 && horaAtual > '0220') ativo = false;
-        // Sábado agora está liberado para iniciar às 23:45 e virar Domingo de madrugada
-      }
-
-      resultado += `<span class="periodo ${ativo ? 'ativo' : 'inativo'}">${periodoStr}</span> `;
-    }
-
-    document.getElementById('saida').innerHTML = resultado.trim();
+  // Data limite: 30/11/2026 11:50 UTC
+  const dataFinal = new Date(Date.UTC(2026, 10, 30, 11, 50));
+  if (agora.getTime() >= dataFinal.getTime()) {
+    document.getElementById('saida').innerHTML = '';
+    return;
   }
 
-  document.addEventListener('DOMContentLoaded', verificarPeriodoSBUL);
+  // Períodos padrão (Segunda, Quarta, Quinta, Sexta e SÁBADO)
+  let periodos = [
+    { inicio: '0415', fim: '0800' },
+    { inicio: '2345', fim: '0220' }
+  ];
+
+  // Ajuste do primeiro período: Terça-feira muda o matutino
+  if (diaSemana === 2) {
+    periodos[0] = { inicio: '0440', fim: '0755' };
+  }
+  // Ajuste para Domingo: Não tem o bloco matutino das 04:15
+  else if (diaSemana === 0) {
+    periodos = [{ inicio: '2345', fim: '0220' }];
+  }
+
+  function dentroDoPeriodo(p) {
+    if (p.inicio <= p.fim) {
+      return horaAtual >= p.inicio && horaAtual <= p.fim;
+    } else {
+      // Lógica de overnight (23:45 até 02:20 do dia seguinte)
+      return horaAtual >= p.inicio || horaAtual <= p.fim;
+    }
+  }
+
+  const texto = 'SBUL CLSD';
+  let resultado = `<span class="texto-principal">${texto}</span> `;
+
+  for (let i = 0; i < periodos.length; i++) {
+    const periodo = periodos[i];
+    const periodoStr = `${periodo.inicio}-${periodo.fim}`;
+    let ativo = dentroDoPeriodo(periodo);
+
+    // Filtro de dias para o bloco Overnight (23:45 - 02:20)
+    if (periodo.inicio === '2345') {
+      // Se for Domingo antes das 23:45 OU Segunda após as 02:20, desativa
+      if (diaSemana === 0 && horaAtual < '2345') ativo = false;
+      if (diaSemana === 1 && horaAtual > '0220') ativo = false;
+    }
+
+    resultado += `<span class="periodo ${ativo ? 'ativo' : 'inativo'}">${periodoStr}</span> `;
+  }
+
+  document.getElementById('saida').innerHTML = resultado.trim();
+}
+
+document.addEventListener('DOMContentLoaded', verificarPeriodoSBUL);
 </script>
 
 
