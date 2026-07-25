@@ -103,11 +103,12 @@ function abrirMapaAeronave(aircraft) {
 
         const polygonLatLng = polygonCoordinates.map(c => [c[1], c[0]]);
 
-        L.polygon(polygonLatLng, {
+L.polygon(polygonLatLng, {
             color: 'gray',
             fillColor: 'lightgray',
             fillOpacity: 0.5,
-            weight: 0.5
+            weight: 0.5,
+            interactive: false // Desativa interações de mouse e mantém a mãozinha de arrastar o mapa
         }).addTo(window.aircraftMap);
     }
 
