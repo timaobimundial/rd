@@ -385,6 +385,11 @@ function clearIcaoCode() {
 
     document.getElementById("map").style.display = "none";
 
+// NOVO: Limpa os marcadores de estimado caso existam no bc.js
+    if (typeof limparEstimadosAtuais === 'function') {
+        limparEstimadosAtuais();
+    }
+  
     if (window.map) {
         window.map.remove();
         window.map = null;
