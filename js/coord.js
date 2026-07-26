@@ -43,33 +43,33 @@ const CoordTool = {
 
         if (!input) { this.clearOutputs(); return; }
 
-        // 🔹 NOVO FORMATO: 194553S/0475758W ou 194611S/475643W
-        if (/^\d{6}[NS]\/\d{6,7}[EW]$/i.test(input.replace(/\s/g,''))) {
-            const cleaned = input.replace(/\s/g, '').toUpperCase();
-            const [latStr, lonStr] = cleaned.split('/');
+// 🔹 FORMATO COMPACTO (aceita barra opcional e decimais nos segundos)
+        // Funciona para: 192409.30S/0480327.80W e 194805.84S0475310.55W
+        if (/^(\d{6}(?:\.\d+)?[NS])\s*\/?\s*(\d{6,7}(?:\.\d+)?[EW])$/i.test(input.replace(/\s/g, ''))) {
+            const match = input.replace(/\s/g, '').toUpperCase().match(/^(\d{6}(?:\.\d+)?[NS])\s*\/?\s*(\d{6,7}(?:\.\d+)?[EW])$/i);
+            const latStr = match[1];
+            const lonStr = match[2];
 
-            const parseCompact = (str, isLat) => {
+            const parseCompactWithDecimals = (str, isLat) => {
                 const dir = str.slice(-1);
-                const num = str.slice(0, -1);
-
+                const rawNum = str.slice(0, -1);
+                const [intPart, decPart] = rawNum.split('.');
+                
                 let deg, min, sec;
 
                 if (isLat) {
-                    // LAT sempre DDMMSS (6)
-                    deg = parseInt(num.slice(0,2));
-                    min = parseInt(num.slice(2,4));
-                    sec = parseInt(num.slice(4,6));
+                    deg = parseInt(intPart.slice(0, 2));
+                    min = parseInt(intPart.slice(2, 4));
+                    sec = parseFloat(intPart.slice(4, 6) + (decPart ? '.' + decPart : ''));
                 } else {
-                    // LON pode ser DDDMMSS (7) ou DDMMSS (6 errado comum)
-                    if (num.length === 7) {
-                        deg = parseInt(num.slice(0,3));
-                        min = parseInt(num.slice(3,5));
-                        sec = parseInt(num.slice(5,7));
-                    } else if (num.length === 6) {
-                        // CORREÇÃO: assumir 0 à esquerda → DDDMMSS
-                        deg = parseInt(("0" + num).slice(0,3));
-                        min = parseInt(("0" + num).slice(3,5));
-                        sec = parseInt(("0" + num).slice(5,7));
+                    if (intPart.length === 7) {
+                        deg = parseInt(intPart.slice(0, 3));
+                        min = parseInt(intPart.slice(3, 5));
+                        sec = parseFloat(intPart.slice(5, 7) + (decPart ? '.' + decPart : ''));
+                    } else if (intPart.length === 6) {
+                        deg = parseInt(intPart.slice(0, 2));
+                        min = parseInt(intPart.slice(2, 4));
+                        sec = parseFloat(intPart.slice(4, 6) + (decPart ? '.' + decPart : ''));
                     } else {
                         return NaN;
                     }
@@ -78,8 +78,8 @@ const CoordTool = {
                 return this.dmsToDecimal(deg, min, sec, dir);
             };
 
-            lat = parseCompact(latStr, true);
-            lon = parseCompact(lonStr, false);
+            lat = parseCompactWithDecimals(latStr, true);
+            lon = parseCompactWithDecimals(lonStr, false);
 
         } else if (/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(input)) {
             const parts = input.split(",");
