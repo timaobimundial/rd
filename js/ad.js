@@ -468,3 +468,73 @@ closeButton.style.zIndex = "1000";
 closeButton.onclick = clearIcaoCode;
 
 document.getElementById("map").appendChild(closeButton);
+
+// Função global para plotar áreas de NOTAM no mapa
+window.desenharNotamNoMapa = function(dados) {
+    const mapDiv = document.getElementById("map");
+    const metarContainer = document.querySelector(".container_metar");
+
+    if (metarContainer) {
+        const rect = metarContainer.getBoundingClientRect();
+        mapDiv.style.display = "block";
+        mapDiv.style.position = "fixed";
+        mapDiv.style.top = rect.top + "px";
+        mapDiv.style.left = rect.left + "px";
+        mapDiv.style.width = rect.width + "px";
+        mapDiv.style.height = rect.height + "px";
+        mapDiv.style.margin = "0";
+        mapDiv.style.padding = "0";
+        mapDiv.style.zIndex = "9999";
+    }
+
+    if (window.aircraftMap) {
+        window.aircraftMap.remove();
+        window.aircraftMap = null;
+    }
+
+    if (window.map) {
+        window.map.remove();
+        window.map = null;
+    }
+
+    window.map = L.map('map', {
+        scrollWheelZoom: true
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(window.map);
+
+    let camadaGeo;
+
+    if (dados.tipo === 'circulo') {
+        camadaGeo = L.circle([dados.lat, dados.lng], {
+            radius: dados.raioMeters,
+            color: 'red',
+            fillColor: '#f03',
+            fillOpacity: 0.35,
+            weight: 2
+        }).addTo(window.map);
+
+        L.marker([dados.lat, dados.lng]).addTo(window.map)
+            .bindTooltip(dados.titulo || "NOTAM", { permanent: true, direction: "top", offset: [0, -10] });
+
+        window.map.fitBounds(camadaGeo.getBounds(), { padding: [50, 50] });
+
+    } else if (dados.tipo === 'poligono') {
+        camadaGeo = L.polygon(dados.coords, {
+            color: 'red',
+            fillColor: '#f03',
+            fillOpacity: 0.35,
+            weight: 2
+        }).addTo(window.map);
+
+        window.map.fitBounds(camadaGeo.getBounds(), { padding: [50, 50] });
+    }
+
+    setTimeout(() => {
+        if (window.map) {
+            window.map.invalidateSize();
+        }
+    }, 100);
+};
