@@ -98,13 +98,13 @@ tableString += "</td></tr><tr><td>";
                 return { lat: lat, lng: lng };
             }
 
-            function processarTextoNotam(texto, geo) {
+function processarTextoNotam(texto, geo) {
                 var coordsPoly = [];
-                var regexDMS = /(\d{6}(?:\.\d+)?[NS])[\/]?(\d{7}(?:\.\d+)?[EW])/g;
+                var regexDMS = /(\d{6}(?:\.\d+)?[NS][\/]?\d{7}(?:\.\d+)?[EW])/g;
                 var match;
                 
                 while ((match = regexDMS.exec(texto)) !== null) {
-                    var parsed = dmsToDecimal(match[1] + match[2]);
+                    var parsed = dmsToDecimal(match[1]);
                     if (parsed) coordsPoly.push([parsed.lat, parsed.lng]);
                 }
                 
@@ -116,26 +116,33 @@ tableString += "</td></tr><tr><td>";
                     raioNM = parseFloat(geo.substring(10, 13));
                 }
 
-var notamNum = notams[i].getElementsByTagName("n")[0]?.textContent || "NOTAM";
+                var notamNum = notams[i].getElementsByTagName("n")[0]?.textContent || "NOTAM";
 
+                // Caso 1: Círculo (1 Coordenada + Raio)
                 if (coordsPoly.length === 1 && raioNM) {
                     var center = coordsPoly[0];
                     var raioMeters = raioNM * 1852;
                     var payload = JSON.stringify({ tipo: 'circulo', lat: center[0], lng: center[1], raioMeters: raioMeters, titulo: notamNum }).replace(/"/g, '&quot;');
                     
-                    return texto.replace(regexDMS, function(m) {
-                        return "<u style='cursor:pointer;color:#7fb0d4;' onclick=\"window.desenharNotamNoMapa(" + payload + ")\">" + m + " (RAIO " + raioNM + "NM)</u>";
-                    });
-                } else if (coordsPoly.length > 1) {
-                    var payloadPoly = JSON.stringify({ tipo: 'poligono', coords: coordsPoly, titulo: notamNum }).replace(/"/g, '&quot;');
-                    var textoFormatado = texto;
-                    
-                    coordsPoly.forEach(function() {
-                        textoFormatado = textoFormatado.replace(regexDMS, function(m) {
-                            return "<u style='cursor:pointer;color:#7fb0d4;' onclick=\"window.desenharNotamNoMapa(" + payloadPoly + ")\">" + m + "</u>";
+                    var regexAreaCirculo = /(\d{6}(?:\.\d+)?[NS][\/]?\d{7}(?:\.\d+)?[EW][\s\S]*?RAIO\s+\d+(?:\.\d+)?\s*NM)/i;
+
+                    if (regexAreaCirculo.test(texto)) {
+                        return texto.replace(regexAreaCirculo, function(trechoOriginal) {
+                            return "<u style='cursor:pointer;color:#7fb0d4;' onclick=\"window.desenharNotamNoMapa(" + payload + ")\">" + trechoOriginal + "</u>";
                         });
+                    } else {
+                        return texto.replace(regexDMS, function(trechoOriginal) {
+                            return "<u style='cursor:pointer;color:#7fb0d4;' onclick=\"window.desenharNotamNoMapa(" + payload + ")\">" + trechoOriginal + "</u>";
+                        });
+                    }
+                } 
+                // Caso 2: Polígono (Múltiplas Coordenadas)
+                else if (coordsPoly.length > 1) {
+                    var payloadPoly = JSON.stringify({ tipo: 'poligono', coords: coordsPoly, titulo: notamNum }).replace(/"/g, '&quot;');
+                    
+                    return texto.replace(regexDMS, function(trechoOriginal) {
+                        return "<u style='cursor:pointer;color:#7fb0d4;' onclick=\"window.desenharNotamNoMapa(" + payloadPoly + ")\">" + trechoOriginal + "</u>";
                     });
-                    return textoFormatado;
                 }
                 
                 return texto;
