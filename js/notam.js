@@ -142,10 +142,20 @@ var notamNum = notams[i].getElementsByTagName("n")[0]?.textContent || "NOTAM";
             }
 
             tableString += processarTextoNotam(textoE, geoTag);
+
+            var tagF = notams[i].getElementsByTagName("f")[0]?.textContent || "";
+            var tagG = notams[i].getElementsByTagName("g")[0]?.textContent || "";
+            
+            if (tagF || tagG) {
+                var limites = [tagF, tagG].filter(Boolean).join(" - ");
+                tableString += "</td></tr><tr><td style='font-size:16px;color:#a3a3a3'>";
+                tableString += limites;
+            }
+
             tableString += "</td></tr><tr><td style='font-size:16px;color:#a3a3a3'>";
+            tableString += notams[i].getElementsByTagName("d")[0]?.textContent || "";
 
             
-            tableString += notams[i].getElementsByTagName("d")[0]?.textContent || "";
             tableString += "</td></tr>";
         }
 
