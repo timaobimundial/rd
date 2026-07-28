@@ -507,7 +507,9 @@ window.desenharNotamNoMapa = function(dados) {
 
     let camadaGeo;
 
-    if (dados.tipo === 'circulo') {
+if (dados.tipo === 'circulo') {
+        window.map.setView([dados.lat, dados.lng], 12);
+
         camadaGeo = L.circle([dados.lat, dados.lng], {
             radius: dados.raioMeters,
             color: 'red',
@@ -518,8 +520,6 @@ window.desenharNotamNoMapa = function(dados) {
 
         L.marker([dados.lat, dados.lng]).addTo(window.map)
             .bindTooltip(dados.titulo || "NOTAM", { permanent: true, direction: "top", offset: [0, -10] });
-
-        window.map.fitBounds(camadaGeo.getBounds(), { padding: [50, 50] });
 
     } else if (dados.tipo === 'poligono') {
         camadaGeo = L.polygon(dados.coords, {
