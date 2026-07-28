@@ -116,16 +116,18 @@ tableString += "</td></tr><tr><td>";
                     raioNM = parseFloat(geo.substring(10, 13));
                 }
 
+var notamNum = notams[i].getElementsByTagName("n")[0]?.textContent || "NOTAM";
+
                 if (coordsPoly.length === 1 && raioNM) {
                     var center = coordsPoly[0];
                     var raioMeters = raioNM * 1852;
-                    var payload = JSON.stringify({ tipo: 'circulo', lat: center[0], lng: center[1], raioMeters: raioMeters, titulo: 'NOTAM' }).replace(/"/g, '&quot;');
+                    var payload = JSON.stringify({ tipo: 'circulo', lat: center[0], lng: center[1], raioMeters: raioMeters, titulo: notamNum }).replace(/"/g, '&quot;');
                     
                     return texto.replace(regexDMS, function(m) {
                         return "<u style='cursor:pointer;color:#7fb0d4;' onclick=\"window.desenharNotamNoMapa(" + payload + ")\">" + m + " (RAIO " + raioNM + "NM)</u>";
                     });
                 } else if (coordsPoly.length > 1) {
-                    var payloadPoly = JSON.stringify({ tipo: 'poligono', coords: coordsPoly, titulo: 'NOTAM' }).replace(/"/g, '&quot;');
+                    var payloadPoly = JSON.stringify({ tipo: 'poligono', coords: coordsPoly, titulo: notamNum }).replace(/"/g, '&quot;');
                     var textoFormatado = texto;
                     
                     coordsPoly.forEach(function() {
