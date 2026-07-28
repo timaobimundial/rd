@@ -256,7 +256,7 @@ function abrirANAC() {
     if (marca.length >= 5) {
 
         const url =
-            `https://sistemas.anac.gov.br/aeronaves/cons_rab_resposta.asp?textMarca=${marca}`;
+            `https://aeronaves.anac.gov.br/aeronaves/cons_rab_resposta2.asp?tipo_pesquisa=marcas&textMarca=${marca}`;
 
         window.open(url, "_blank");
 
