@@ -653,7 +653,7 @@ function desenharPontoEstimado(lat, lng, titulo, distNM, gs) {
     const minStr = agora.getMinutes().toString().padStart(2, '0');
     const minDiferencaStr = tempoMinutosTotal.toString().padStart(2, '0');
 
-    const textoEtiqueta = `${titulo} +${minDiferencaStr}' ${horasStr}:${minStr}`;
+    const textoEtiqueta = `${titulo}  +${minDiferencaStr}'  ${horasStr}:${minStr}`;
 
     const iconPonto = L.divIcon({
         className: 'ponto-marcador-icon',
