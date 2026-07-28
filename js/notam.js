@@ -76,9 +76,73 @@ client.onreadystatechange = function () {
                 tableString += "Data inválida";
             }
 
-            tableString += "</td></tr><tr><td>";
-            tableString += notams[i].getElementsByTagName("e")[0]?.textContent || "";
+
+tableString += "</td></tr><tr><td>";
+            
+            var textoE = notams[i].getElementsByTagName("e")[0]?.textContent || "";
+            var geoTag = notams[i].getElementsByTagName("geo")[0]?.textContent || "";
+            
+            function dmsToDecimal(dms) {
+                var regex = /(\d{2})(\d{2})(\d{2}(?:\.\d+)?)?([NS])\/?(\d{3})(\d{2})(\d{2}(?:\.\d+)?)?([EW])/;
+                var match = dms.match(regex);
+                if (!match) return null;
+                
+                var latDeg = parseInt(match[1]), latMin = parseInt(match[2]), latSec = match[3] ? parseFloat(match[3]) : 0;
+                var lat = latDeg + latMin / 60 + latSec / 3600;
+                if (match[4] === 'S') lat = -lat;
+                
+                var lngDeg = parseInt(match[5]), lngMin = parseInt(match[6]), lngSec = match[7] ? parseFloat(match[7]) : 0;
+                var lng = lngDeg + lngMin / 60 + lngSec / 3600;
+                if (match[8] === 'W') lng = -lng;
+                
+                return { lat: lat, lng: lng };
+            }
+
+            function processarTextoNotam(texto, geo) {
+                var coordsPoly = [];
+                var regexDMS = /(\d{6}(?:\.\d+)?[NS])[\/]?(\d{7}(?:\.\d+)?[EW])/g;
+                var match;
+                
+                while ((match = regexDMS.exec(texto)) !== null) {
+                    var parsed = dmsToDecimal(match[1] + match[2]);
+                    if (parsed) coordsPoly.push([parsed.lat, parsed.lng]);
+                }
+                
+                var regexRaio = /RAIO\s+(\d+(?:\.\d+)?)\s*NM/i;
+                var matchRaio = texto.match(regexRaio);
+                var raioNM = matchRaio ? parseFloat(matchRaio[1]) : null;
+                
+                if (!raioNM && geo && geo.length >= 13) {
+                    raioNM = parseFloat(geo.substring(10, 13));
+                }
+
+                if (coordsPoly.length === 1 && raioNM) {
+                    var center = coordsPoly[0];
+                    var raioMeters = raioNM * 1852;
+                    var payload = JSON.stringify({ tipo: 'circulo', lat: center[0], lng: center[1], raioMeters: raioMeters, titulo: 'NOTAM' }).replace(/"/g, '&quot;');
+                    
+                    return texto.replace(regexDMS, function(m) {
+                        return "<u style='cursor:pointer;color:#7fb0d4;' onclick=\"window.desenharNotamNoMapa(" + payload + ")\">" + m + " (RAIO " + raioNM + "NM)</u>";
+                    });
+                } else if (coordsPoly.length > 1) {
+                    var payloadPoly = JSON.stringify({ tipo: 'poligono', coords: coordsPoly, titulo: 'NOTAM' }).replace(/"/g, '&quot;');
+                    var textoFormatado = texto;
+                    
+                    coordsPoly.forEach(function() {
+                        textoFormatado = textoFormatado.replace(regexDMS, function(m) {
+                            return "<u style='cursor:pointer;color:#7fb0d4;' onclick=\"window.desenharNotamNoMapa(" + payloadPoly + ")\">" + m + "</u>";
+                        });
+                    });
+                    return textoFormatado;
+                }
+                
+                return texto;
+            }
+
+            tableString += processarTextoNotam(textoE, geoTag);
             tableString += "</td></tr><tr><td style='font-size:16px;color:#a3a3a3'>";
+
+            
             tableString += notams[i].getElementsByTagName("d")[0]?.textContent || "";
             tableString += "</td></tr>";
         }
