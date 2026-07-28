@@ -497,20 +497,73 @@ window.desenharNotamNoMapa = function(dados) {
         window.map = null;
     }
 
+    const sbur = {
+        lat: -19.764722222222,
+        lng: -47.966111111111
+    };
+
+    function haversineDistance(coord1, coord2) {
+        const R = 3440.065;
+        const toRad = (angle) => angle * Math.PI / 180;
+        const dLat = toRad(coord2.lat - coord1.lat);
+        const dLng = toRad(coord2.lng - coord1.lng);
+        const lat1 = toRad(coord1.lat);
+        const lat2 = toRad(coord2.lat);
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return Math.ceil(R * c);
+    }
+
+    function calculateBearing(coord1, coord2) {
+        const toRad = (angle) => angle * Math.PI / 180;
+        const toDeg = (angle) => angle * 180 / Math.PI;
+        const dLng = toRad(coord2.lng - coord1.lng);
+        const lat1 = toRad(coord1.lat);
+        const lat2 = toRad(coord2.lat);
+        const y = Math.sin(dLng) * Math.cos(lat2);
+        const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+        return String(Math.ceil((toDeg(Math.atan2(y, x)) + 360) % 360)).padStart(3, '0');
+    }
+
     window.map = L.map('map', {
         scrollWheelZoom: true
-    });
+    }).setView([sbur.lat, sbur.lng], 9);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(window.map);
 
-    let camadaGeo;
+    const polygonCoordinates = [
+        [
+            [-20.582222, -48.596667],
+            [-20.553611, -48.028056],
+            [-20.543611, -47.856111],
+            [-20.583611, -47.382500],
+            [-20.210000, -46.985556],
+            [-19.674167, -46.943611],
+            [-19.561111, -46.964722],
+            [-19.155556, -47.148889],
+            [-19.312778, -48.092778],
+            [-19.375000, -48.524167],
+            [-19.425000, -48.906111],
+            [-19.980278, -48.892500]
+        ]
+    ];
 
-if (dados.tipo === 'circulo') {
-        window.map.setView([dados.lat, dados.lng], 12);
+    L.polygon(polygonCoordinates, {
+        color: 'gray',
+        fillColor: 'lightgray',
+        fillOpacity: 0.5,
+        weight: 0.5
+    }).addTo(window.map);
 
-        camadaGeo = L.circle([dados.lat, dados.lng], {
+    let centerLat, centerLng;
+
+    if (dados.tipo === 'circulo') {
+        centerLat = dados.lat;
+        centerLng = dados.lng;
+
+        L.circle([centerLat, centerLng], {
             radius: dados.raioMeters,
             color: 'red',
             fillColor: '#f03',
@@ -518,19 +571,52 @@ if (dados.tipo === 'circulo') {
             weight: 2
         }).addTo(window.map);
 
-        L.marker([dados.lat, dados.lng]).addTo(window.map)
-            .bindTooltip(dados.titulo || "NOTAM", { permanent: true, direction: "top", offset: [0, -10] });
-
     } else if (dados.tipo === 'poligono') {
-        camadaGeo = L.polygon(dados.coords, {
+        const poly = L.polygon(dados.coords, {
             color: 'red',
             fillColor: '#f03',
             fillOpacity: 0.35,
             weight: 2
         }).addTo(window.map);
 
-        window.map.fitBounds(camadaGeo.getBounds(), { padding: [50, 50] });
+        const boundsPoly = poly.getBounds();
+        const centerPoly = boundsPoly.getCenter();
+        centerLat = centerPoly.lat;
+        centerLng = centerPoly.lng;
     }
+
+    const distance = haversineDistance(sbur, { lat: centerLat, lng: centerLng });
+    const trueBearing = calculateBearing(sbur, { lat: centerLat, lng: centerLng });
+    const magneticBearing = String((parseInt(trueBearing) + 22) % 360).padStart(3, '0');
+
+    const markerSBUR = L.marker([sbur.lat, sbur.lng]).addTo(window.map);
+    markerSBUR.bindTooltip(`SBUR<br>${magneticBearing}º ${distance}NM`, {
+        permanent: true,
+        direction: "top",
+        offset: [0, -15],
+        className: "tooltip-sbur"
+    });
+
+    const markerDest = L.marker([centerLat, centerLng]).addTo(window.map);
+    markerDest.bindTooltip(dados.titulo, {
+        permanent: true,
+        direction: "top",
+        offset: [0, -15]
+    });
+
+    L.polyline([sbur, { lat: centerLat, lng: centerLng }], {
+        color: '#7fb0d4'
+    }).addTo(window.map);
+
+    const bounds = L.latLngBounds([
+        markerSBUR.getLatLng(),
+        markerDest.getLatLng()
+    ]);
+
+    window.map.fitBounds(bounds, {
+        paddingTopLeft: [90, 90],
+        paddingBottomRight: [50, 50]
+    });
 
     setTimeout(() => {
         if (window.map) {
