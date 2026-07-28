@@ -568,7 +568,7 @@ window.desenharNotamNoMapa = function(dados) {
             color: 'red',
             fillColor: '#f03',
             fillOpacity: 0.35,
-            weight: 1
+            weight: 0.5
         }).addTo(window.map);
 
     } else if (dados.tipo === 'poligono') {
@@ -576,7 +576,7 @@ window.desenharNotamNoMapa = function(dados) {
             color: 'red',
             fillColor: '#f03',
             fillOpacity: 0.35,
-            weight: 1
+            weight: 0.5
         }).addTo(window.map);
 
         const boundsPoly = poly.getBounds();
