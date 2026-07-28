@@ -108,23 +108,32 @@ function processarTextoNotam(texto, geo) {
                     if (parsed) coordsPoly.push([parsed.lat, parsed.lng]);
                 }
                 
-                var regexRaio = /RAIO\s+(\d+(?:\.\d+)?)\s*NM/i;
+                // Detecta RAIO em NM, KM ou M
+                var regexRaio = /RAIO\s+(\d+(?:\.\d+)?)\s*(NM|KM|M)\b/i;
                 var matchRaio = texto.match(regexRaio);
-                var raioNM = matchRaio ? parseFloat(matchRaio[1]) : null;
+                var raioMeters = null;
                 
-                if (!raioNM && geo && geo.length >= 13) {
-                    raioNM = parseFloat(geo.substring(10, 13));
+                if (matchRaio) {
+                    var valor = parseFloat(matchRaio[1]);
+                    var unidade = matchRaio[2].toUpperCase();
+                    
+                    if (unidade === 'NM') raioMeters = valor * 1852;
+                    else if (unidade === 'KM') raioMeters = valor * 1000;
+                    else if (unidade === 'M') raioMeters = valor;
+                } else if (geo && geo.length >= 13) {
+                    var raioNM = parseFloat(geo.substring(10, 13));
+                    if (!isNaN(raioNM)) raioMeters = raioNM * 1852;
                 }
 
                 var notamNum = notams[i].getElementsByTagName("n")[0]?.textContent || "NOTAM";
 
-                // Caso 1: Círculo (1 Coordenada + Raio)
-                if (coordsPoly.length === 1 && raioNM) {
+                // Caso 1: Círculo (1 Coordenada + Raio em qualquer unidade)
+                if (coordsPoly.length === 1 && raioMeters) {
                     var center = coordsPoly[0];
-                    var raioMeters = raioNM * 1852;
                     var payload = JSON.stringify({ tipo: 'circulo', lat: center[0], lng: center[1], raioMeters: raioMeters, titulo: notamNum }).replace(/"/g, '&quot;');
                     
-                    var regexAreaCirculo = /(\d{6}(?:\.\d+)?[NS][\/]?\d{7}(?:\.\d+)?[EW][\s\S]*?RAIO\s+\d+(?:\.\d+)?\s*NM)/i;
+                    // Regex flexível: pega da coordenada até a palavra RAIO + unidade (mesmo com texto/parênteses no meio)
+                    var regexAreaCirculo = /(\d{6}(?:\.\d+)?[NS][\/]?\d{7}(?:\.\d+)?[EW][\s\S]*?RAIO\s+\d+(?:\.\d+)?\s*(?:NM|KM|M)\b)/i;
 
                     if (regexAreaCirculo.test(texto)) {
                         return texto.replace(regexAreaCirculo, function(trechoOriginal) {
