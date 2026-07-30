@@ -683,6 +683,61 @@ $(document).ready(function(){
 
     
 
-    
+
+
+
+	<script>
+  (function () {
+    const TEMPO_180S = 180000; // 180 segundos (3 minutos)
+    let timerRefresh = null;
+    let mapaAberto = false;
+
+    // 1. Função que dispara o recarregamento
+    function iniciarTimer180s() {
+      if (timerRefresh) clearTimeout(timerRefresh);
+
+      timerRefresh = setTimeout(() => {
+        window.location.reload();
+      }, TEMPO_180S);
+    }
+
+    // Inicia a contagem normal assim que a página carrega
+    iniciarTimer180s();
+
+    // 2. Observador para detectar o gatilho de abertura do mapa
+    const observer = new MutationObserver(() => {
+      const mapElement = document.getElementById('map');
+
+      if (mapElement && !mapaAberto) {
+        const estaVisivel = window.getComputedStyle(mapElement).display !== 'none';
+        const temClasseLeaflet = mapElement.classList.contains('leaflet-container');
+
+        // Quando o mapa é iniciado/exibido pela primeira vez
+        if (estaVisivel || temClasseLeaflet) {
+          mapaAberto = true; // Marca que o mapa abriu para não disparar novamente
+          iniciarTimer180s(); // Zera o tempo anterior e inicia NOVO ciclo cravado de 180s
+        }
+      }
+    });
+
+    // Monitora alterações na div do mapa ou no body
+    document.addEventListener('DOMContentLoaded', () => {
+      const targetNode = document.getElementById('map') || document.body;
+      observer.observe(targetNode, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+        attributeFilter: ['style', 'class']
+      });
+    });
+  })();
+</script>
+
+
+
+
+
+
+	
 </body>
 </html>
