@@ -541,22 +541,18 @@ async function processarComandoEstimado(aircraft, comando) {
 
     if (!comando) return;
 
-    let isTraves = false;
-    let termo = comando;
-
-    // RECURSO DE TRAVÉS ("T ") DESATIVADO TEMPORARIAMENTE
-    if (comando.startsWith('T ')) {
-        return; // Anula a execução se tentar usar través
-    }
-
+    let termo = comando.trim().toUpperCase();
     if (!termo) return;
 
-    // Validação: executa apenas para códigos ICAO (4 letras) ou Fixos (5 letras)
     if (termo.length < 4 || termo.length > 5) return;
 
     let destLat = null, destLng = null, nomePonto = termo;
 
-    if (termo === 'SBUR') {
+    // Coordenadas específicas de SBUL (18 53 01S / 048 13 31W em decimais)
+    if (termo === 'SBUL') {
+        destLat = -18.883611;
+        destLng = -48.225278;
+    } else if (termo === 'SBUR') {
         destLat = sbur[1];
         destLng = sbur[0];
     } else if (termo.length === 5 && typeof fixes !== 'undefined' && fixes.length > 0) {
@@ -599,90 +595,68 @@ async function processarComandoEstimado(aircraft, comando) {
     if (isNaN(gs) || gs <= 0) return;
 
     const pontoAviao = turf.point([aircraft.longitude, aircraft.latitude]);
-    let distNM = 0;
+    const pontoDestino = turf.point([destLng, destLat]);
 
-    if (!isTraves) {
-        const pontoDestino = turf.point([destLng, destLat]);
-        const distKM = turf.distance(pontoAviao, pontoDestino, { units: 'kilometers' });
-        distNM = distKM * 0.539957;
+    // Cálculo de distância em NM
+    const distFixoKM = turf.distance(pontoAviao, pontoDestino, { units: 'kilometers' });
+    const distFixoNM = distFixoKM * 0.539957;
 
-        desenharPontoEstimado(destLat, destLng, `${nomePonto}`, distNM, gs);
+    desenharCenarioEstimado(destLat, destLng, nomePonto, distFixoNM, gs, pontoAviao, pontoDestino);
+}
 
-    } else {
-        const rumoMag = parseInt(aircraft.rumoMagnetic);
-        if (isNaN(rumoMag)) return;
+function desenharCenarioEstimado(latFixo, lngFixo, nomePonto, distFixoNM, gs, pontoAviao, pontoDestino) {
+    // 1. Cálculo do Estimado (Minutos e Hora de Chegada)
+    const tempoHorasFixo = distFixoNM / gs;
+    const minFixo = Math.round(tempoHorasFixo * 60);
+    const agoraFixo = new Date();
+    agoraFixo.setMinutes(agoraFixo.getMinutes() + minFixo);
+    const horaFixoStr = `${agoraFixo.getHours().toString().padStart(2, '0')}:${agoraFixo.getMinutes().toString().padStart(2, '0')}`;
 
-        // Ajuste exato da declinação magnética (-22°)
-        const rumoVerdadeiro = (rumoMag - 22 + 360) % 360;
-        
-        const pontoProjetado = turf.destination(pontoAviao, 1000, rumoVerdadeiro, { units: 'kilometers' });
-        const linhaVoo = turf.lineString([[aircraft.longitude, aircraft.latitude], pontoProjetado.geometry.coordinates]);
-        
-        const pontoRef = turf.point([destLng, destLat]);
-        const pontoTraves = turf.nearestPointOnLine(linhaVoo, pontoRef);
+    // Linha 1 padrão
+    let textoFixo = `${nomePonto} +${minFixo.toString().padStart(2, '0')}' ${horaFixoStr}`;
 
-        const lngFinal = pontoTraves.geometry.coordinates[0];
-        const latFinal = pontoTraves.geometry.coordinates[1];
+    // 2. EXCLUSIVO PARA SBUL: Adiciona a Radial ULD e a Distância
+    if (nomePonto === 'SBUL') {
+        // Distância arredondada em NM
+        const distNM = Math.round(distFixoNM);
 
-        const distKM = turf.distance(pontoAviao, pontoTraves, { units: 'kilometers' });
-        distNM = distKM * 0.539957;
+        // Direção verdadeira de SBUL para o Avião (Radial)
+        const bearingVerdadeiro = turf.bearing(pontoDestino, pontoAviao);
 
-        desenharSimplesPonto(destLat, destLng);
-        desenharPontoEstimado(latFinal, lngFinal, `TRAVÉS ${nomePonto}`, distNM, gs);
+        // Aplicação da declinação magnética (-22°): Radial Magnética = (RV - (-22)) % 360
+        const radialMag = Math.round((bearingVerdadeiro + 22 + 360) % 360);
+        const radialStr = radialMag.toString().padStart(3, '0');
+
+        // Adiciona a segunda linha formatada
+        textoFixo += `<br>ULD${radialStr}º ${distNM}NM`;
     }
-}
 
-function desenharSimplesPonto(lat, lng) {
-    const iconPonto = L.divIcon({
-        className: 'ponto-marcador-icon',
-        iconSize: [8, 8],
-        iconAnchor: [4, 4]
-    });
-    const m = L.marker([lat, lng], { icon: iconPonto }).addTo(window.aircraftMap);
-    window.estimadosMarkers.push(m);
-}
-
-function desenharPontoEstimado(lat, lng, titulo, distNM, gs) {
-    const tempoHoras = distNM / gs;
-    const tempoMinutosTotal = Math.round(tempoHoras * 60);
-
-    const agora = new Date();
-    agora.setMinutes(agora.getMinutes() + tempoMinutosTotal);
-
-    const horasStr = agora.getHours().toString().padStart(2, '0');
-    const minStr = agora.getMinutes().toString().padStart(2, '0');
-    const minDiferencaStr = tempoMinutosTotal.toString().padStart(2, '0');
-
-    const textoEtiqueta = `${titulo}  +${minDiferencaStr}'  ${horasStr}:${minStr}`;
-
-    const iconPonto = L.divIcon({
+    // Criar o Marcador no Mapa
+    const iconFixo = L.divIcon({
         className: 'ponto-marcador-icon',
         iconSize: [8, 8],
         iconAnchor: [4, 4]
     });
 
-const markerPonto = L.marker([lat, lng], { icon: iconPonto }).addTo(window.aircraftMap);
-
-    markerPonto.bindTooltip(textoEtiqueta, {
+    const markerFixo = L.marker([latFixo, lngFixo], { icon: iconFixo }).addTo(window.aircraftMap);
+    
+    markerFixo.bindTooltip(textoFixo, {
         permanent: true,
         direction: "right",
         offset: [10, 0],
         className: "tooltip-estimado-resultado"
     });
+    
+    window.estimadosMarkers.push(markerFixo);
 
-    window.estimadosMarkers.push(markerPonto);
-
-    // Ajusta o zoom do mapa para enquadrar também o ponto estimado gerado
+    // Ajuste de zoom do mapa
     if (window.aircraftMap) {
         const boundsAtual = L.latLngBounds([[sbur[1], sbur[0]]]);
         
-        // Inclui as aeronaves exibidas
         if (window.aeronavesExibidas) {
             window.aeronavesExibidas.forEach(ac => boundsAtual.extend([ac.latitude, ac.longitude]));
         }
-        
-        // Inclui o novo ponto estimado
-        boundsAtual.extend([lat, lng]);
+        boundsAtual.extend([latFixo, lngFixo]);
 
         window.aircraftMap.fitBounds(boundsAtual, {
             paddingTopLeft: [90, 90],
