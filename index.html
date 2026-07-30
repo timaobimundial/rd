@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<meta http-equiv="refresh" content="180">
+<!--<meta http-equiv="refresh" content="180">-->
 <head>
 <meta charset="UTF-8">
 
@@ -686,41 +686,48 @@ $(document).ready(function(){
 
 
 
-	<script>
+<script>
   (function () {
-    const TEMPO_900S = 90000; // 90 segundos (1,5 minutos)
+    const TEMPO_INDEX_MS = 180000; // 180s para a página normal
+    const TEMPO_MAPA_MS = 90000;    // 90s a partir do momento que o mapa abre
+    
     let timerRefresh = null;
-    let mapaAberto = false;
+    let mapaJaGatilhado = false;
 
-    // 1. Função que dispara o recarregamento
-    function iniciarTimer180s() {
+    // 1. Inicia o timer inicial de 180s da página
+    function agendarRefresh(ms) {
       if (timerRefresh) clearTimeout(timerRefresh);
-
       timerRefresh = setTimeout(() => {
         window.location.reload();
-      }, TEMPO_180S);
+      }, ms);
     }
 
-    // Inicia a contagem normal assim que a página carrega
-    iniciarTimer180s();
+    // Começa com os 180s assim que entra no site
+    agendarRefresh(TEMPO_INDEX_MS);
 
-    // 2. Observador para detectar o gatilho de abertura do mapa
-    const observer = new MutationObserver(() => {
+    // 2. Função de checagem precisa do estado do mapa
+    function checarEAtivarGatilhoMapa() {
+      if (mapaJaGatilhado) return;
+
       const mapElement = document.getElementById('map');
+      if (!mapElement) return;
 
-      if (mapElement && !mapaAberto) {
-        const estaVisivel = window.getComputedStyle(mapElement).display !== 'none';
-        const temClasseLeaflet = mapElement.classList.contains('leaflet-container');
+      // Verifica se a div está visível (display !== 'none') OU se o Leaflet já injetou suas classes de mapa ativo
+      const estilo = window.getComputedStyle(mapElement);
+      const estaVisivel = estilo.display !== 'none' && estilo.visibility !== 'hidden';
+      const temClasseLeaflet = mapElement.classList.contains('leaflet-container');
 
-        // Quando o mapa é iniciado/exibido pela primeira vez
-        if (estaVisivel || temClasseLeaflet) {
-          mapaAberto = true; // Marca que o mapa abriu para não disparar novamente
-          iniciarTimer180s(); // Zera o tempo anterior e inicia NOVO ciclo cravado de 180s
-        }
+      if (estaVisivel || temClasseLeaflet) {
+        mapaJaGatilhado = true; // Impede que o gatilho rode mais de uma vez
+        agendarRefresh(TEMPO_MAPA_MS); // Zera o timer de 180s e inicia o NOVO de 90s
       }
+    }
+
+    // 3. Monitora o DOM especificamente aguardando a exibição da div do mapa
+    const observer = new MutationObserver(() => {
+      checarEAtivarGatilhoMapa();
     });
 
-    // Monitora alterações na div do mapa ou no body
     document.addEventListener('DOMContentLoaded', () => {
       const targetNode = document.getElementById('map') || document.body;
       observer.observe(targetNode, {
