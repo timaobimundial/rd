@@ -76,47 +76,32 @@ function verificarPeriodoSBUL() {
     return;
   }
 
-  // Períodos oficiais:
-  // MON WED THU FRI SAT 0415-0800
-  // TUE 0440-0755
-  // MON 2345-2359
-  // TUE-SAT 0000-0220 2345-2359
-  // SUN 0000-0220
+  // Períodos padrão
+  let periodos = [
+    { inicio: '0415', fim: '0800' },
+    { inicio: '2345', fim: '0220' }
+  ];
 
-  let periodos = [];
+  // Terça-feira: período matutino diferente
+  if (diaSemana === 2) {
+    periodos[0] = { inicio: '0440', fim: '0755' };
+  }
 
+  // Domingo: não possui período matutino
   if (diaSemana === 0) {
-    // Domingo
     periodos = [
-      { inicio: '0000', fim: '0220' }
-    ];
-
-  } else if (diaSemana === 1) {
-    // Segunda
-    periodos = [
-      { inicio: '0415', fim: '0800' },
-      { inicio: '2345', fim: '2359' }
-    ];
-
-  } else if (diaSemana === 2) {
-    // Terça
-    periodos = [
-      { inicio: '0000', fim: '0220' },
-      { inicio: '0440', fim: '0755' },
-      { inicio: '2345', fim: '2359' }
-    ];
-
-  } else {
-    // Quarta, Quinta, Sexta e Sábado
-    periodos = [
-      { inicio: '0000', fim: '0220' },
-      { inicio: '0415', fim: '0800' },
-      { inicio: '2345', fim: '2359' }
+      { inicio: '2345', fim: '0220' }
     ];
   }
 
   function dentroDoPeriodo(p) {
-    return horaAtual >= p.inicio && horaAtual <= p.fim;
+    if (p.inicio <= p.fim) {
+      // Período normal, dentro do mesmo dia
+      return horaAtual >= p.inicio && horaAtual <= p.fim;
+    } else {
+      // Período overnight: 23:45 até 02:20
+      return horaAtual >= p.inicio || horaAtual <= p.fim;
+    }
   }
 
   const texto = 'SBUL CLSD';
@@ -125,7 +110,38 @@ function verificarPeriodoSBUL() {
   for (let i = 0; i < periodos.length; i++) {
     const periodo = periodos[i];
     const periodoStr = `${periodo.inicio}-${periodo.fim}`;
-    const ativo = dentroDoPeriodo(periodo);
+
+    let ativo = dentroDoPeriodo(periodo);
+
+    /*
+     * O período 2345-0220 é um único período overnight.
+     *
+     * Ele deve ficar ativo:
+     * - de segunda 23:45 até terça 02:20
+     * - de terça 23:45 até quarta 02:20
+     * - de quarta 23:45 até quinta 02:20
+     * - de quinta 23:45 até sexta 02:20
+     * - de sexta 23:45 até sábado 02:20
+     * - de sábado 23:45 até domingo 02:20
+     *
+     * Segunda 00:00-02:20 pertence ao período iniciado
+     * no domingo, portanto NÃO é considerado aqui.
+     */
+
+    if (periodo.inicio === '2345') {
+      if (horaAtual <= '0220') {
+        // Entre 00:00 e 02:20:
+        // o período pertence ao dia anterior.
+        // Domingo 00:00-02:20 é válido (período de sábado).
+        ativo = true;
+      } else if (horaAtual >= '2345') {
+        // Entre 23:45 e 23:59:
+        // domingo não inicia um novo período overnight.
+        ativo = diaSemana !== 0;
+      } else {
+        ativo = false;
+      }
+    }
 
     resultado += `<span class="periodo ${ativo ? 'ativo' : 'inativo'}">${periodoStr}</span> `;
   }
@@ -134,7 +150,6 @@ function verificarPeriodoSBUL() {
 }
 
 document.addEventListener('DOMContentLoaded', verificarPeriodoSBUL);
-
 </script>
 
 
