@@ -75,17 +75,17 @@ function verificarPeriodoSBUL() {
     return;
   }
 
-  // Períodos padrão (Segunda, Quarta, Quinta, Sexta e SÁBADO)
+  // Períodos padrão
   let periodos = [
     { inicio: '0415', fim: '0800' },
     { inicio: '2345', fim: '0220' }
   ];
 
-  // Ajuste do primeiro período: Terça-feira muda o matutino
+  // Terça-feira: período matutino diferente
   if (diaSemana === 2) {
     periodos[0] = { inicio: '0440', fim: '0755' };
   }
-  // Ajuste para Domingo: Não tem o bloco matutino das 04:15
+  // Domingo: não existe período matutino
   else if (diaSemana === 0) {
     periodos = [{ inicio: '2345', fim: '0220' }];
   }
@@ -94,7 +94,7 @@ function verificarPeriodoSBUL() {
     if (p.inicio <= p.fim) {
       return horaAtual >= p.inicio && horaAtual <= p.fim;
     } else {
-      // Lógica de overnight (23:45 até 02:20 do dia seguinte)
+      // Overnight
       return horaAtual >= p.inicio || horaAtual <= p.fim;
     }
   }
@@ -107,11 +107,27 @@ function verificarPeriodoSBUL() {
     const periodoStr = `${periodo.inicio}-${periodo.fim}`;
     let ativo = dentroDoPeriodo(periodo);
 
-    // Filtro de dias para o bloco Overnight (23:45 - 02:20)
+    // Tratamento específico do overnight 23:45-02:20.
+    //
+    // O período só começa nos dias em que o NOTAM
+    // possui 23:45:
+    // segunda, terça, quarta, quinta, sexta e sábado.
+    //
+    // Portanto:
+    // domingo 23:45-23:59 -> INATIVO
+    // segunda 00:00-02:20 -> depende do overnight de domingo -> INATIVO
+    //
+    // Para os demais dias, o período iniciado na noite
+    // anterior é válido até 02:20.
     if (periodo.inicio === '2345') {
-      // Se for Domingo antes das 23:45 OU Segunda após as 02:20, desativa
-      if (diaSemana === 0 && horaAtual < '2345') ativo = false;
-      if (diaSemana === 1 && horaAtual > '0220') ativo = false;
+      if (diaSemana === 0) {
+        // Domingo não possui período 23:45.
+        ativo = false;
+      } else if (diaSemana === 1 && horaAtual <= '0220') {
+        // Segunda 00:00-02:20 pertence ao período
+        // iniciado no domingo, que não existe.
+        ativo = false;
+      }
     }
 
     resultado += `<span class="periodo ${ativo ? 'ativo' : 'inativo'}">${periodoStr}</span> `;
