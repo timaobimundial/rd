@@ -70,36 +70,31 @@ function verificarPeriodoSBUL() {
 
   // Data limite: 30/11/2026 11:50 UTC
   const dataFinal = new Date(Date.UTC(2026, 10, 30, 11, 50));
-
   if (agora.getTime() >= dataFinal.getTime()) {
     document.getElementById('saida').innerHTML = '';
     return;
   }
 
-  // Períodos padrão
+  // Períodos padrão (Segunda, Quarta, Quinta, Sexta e SÁBADO)
   let periodos = [
     { inicio: '0415', fim: '0800' },
     { inicio: '2345', fim: '0220' }
   ];
 
-  // Terça-feira: período matutino diferente
+  // Ajuste do primeiro período: Terça-feira muda o matutino
   if (diaSemana === 2) {
     periodos[0] = { inicio: '0440', fim: '0755' };
   }
-
-  // Domingo: não possui período matutino
-  if (diaSemana === 0) {
-    periodos = [
-      { inicio: '2345', fim: '0220' }
-    ];
+  // Ajuste para Domingo: Não tem o bloco matutino das 04:15
+  else if (diaSemana === 0) {
+    periodos = [{ inicio: '2345', fim: '0220' }];
   }
 
   function dentroDoPeriodo(p) {
     if (p.inicio <= p.fim) {
-      // Período normal, dentro do mesmo dia
       return horaAtual >= p.inicio && horaAtual <= p.fim;
     } else {
-      // Período overnight: 23:45 até 02:20
+      // Lógica de overnight (23:45 até 02:20 do dia seguinte)
       return horaAtual >= p.inicio || horaAtual <= p.fim;
     }
   }
@@ -110,32 +105,16 @@ function verificarPeriodoSBUL() {
   for (let i = 0; i < periodos.length; i++) {
     const periodo = periodos[i];
     const periodoStr = `${periodo.inicio}-${periodo.fim}`;
-
     let ativo = dentroDoPeriodo(periodo);
 
-    // Período overnight
+    // Filtro de dias para o bloco Overnight (23:45 - 02:20)
     if (periodo.inicio === '2345') {
-
-      if (horaAtual <= '0220') {
-        // 00:00-02:20:
-        // pertence ao período iniciado no dia anterior.
-        ativo = true;
-
-      } else if (horaAtual >= '2345') {
-        // 23:45-23:59:
-        // domingo não inicia novo período.
-        ativo = diaSemana !== 0;
-
-      } else {
-        ativo = false;
-      }
+      // Se for Domingo antes das 23:45 OU Segunda após as 02:20, desativa
+      if (diaSemana === 0 && horaAtual < '2345') ativo = false;
+      if (diaSemana === 1 && horaAtual > '0220') ativo = false;
     }
 
-    // Só exibe o período enquanto ele estiver ativo.
-    // Depois do minuto final, ele desaparece.
-    if (ativo) {
-      resultado += `<span class="periodo ativo">${periodoStr}</span> `;
-    }
+    resultado += `<span class="periodo ${ativo ? 'ativo' : 'inativo'}">${periodoStr}</span> `;
   }
 
   document.getElementById('saida').innerHTML = resultado.trim();
@@ -143,8 +122,6 @@ function verificarPeriodoSBUL() {
 
 document.addEventListener('DOMContentLoaded', verificarPeriodoSBUL);
 </script>
-
-
 
 
 
@@ -156,15 +133,14 @@ document.addEventListener('DOMContentLoaded', verificarPeriodoSBUL);
     const hora = agora.getUTCHours().toString().padStart(2, '0');
     const minuto = agora.getUTCMinutes().toString().padStart(2, '0');
     const horaAtual = hora + minuto;
-    const diaSemana = agora.getUTCDay(); // 0=domingo, 6=sábado
 
-    // Data limite: 30/08/2026 08:00 UTC
-    const dataFinal = new Date(Date.UTC(2026, 7, 30, 8, 0));
-
+    // Data limite: 31/07/2026 08:00 UTC
+    const dataFinal = new Date(Date.UTC(2026, 6, 31, 8, 0));
     if (agora.getTime() >= dataFinal.getTime()) {
       document.getElementById('aviso_ur').innerHTML = '';
       return;
     }
+
 
     const periodo = { inicio: '2345', fim: '0800' };
 
@@ -172,19 +148,18 @@ document.addEventListener('DOMContentLoaded', verificarPeriodoSBUL);
       if (p.inicio <= p.fim) {
         return horaAtual >= p.inicio && horaAtual <= p.fim;
       } else {
-        // Período overnight: 23:45 até 08:00
         return horaAtual >= p.inicio || horaAtual <= p.fim;
       }
     }
 
     const texto = 'SBUR CLSD';
     let resultado = `<span class="texto-principal">${texto}</span> `;
+    const periodoStr = `${periodo.inicio}-${periodo.fim}`;
+    const diaSemana = agora.getUTCDay(); // 0=domingo, 6=sábado
 
     let ativo = dentroDoPeriodo(periodo);
 
-    // Exceção SBUR:
-    // Domingo 23:45-23:59 e segunda 00:00-08:00 não fazem parte
-    // do período exibido.
+    // Exceção SBUR: domingo 23:45-23:59 e segunda 00:00-08:00
     if (
       (diaSemana === 0 && horaAtual >= '2345') ||
       (diaSemana === 1 && horaAtual <= '0800')
@@ -192,13 +167,7 @@ document.addEventListener('DOMContentLoaded', verificarPeriodoSBUL);
       ativo = false;
     }
 
-    // Só exibe o período enquanto estiver ativo.
-    // No minuto seguinte ao fim, ele desaparece.
-    if (ativo) {
-      const periodoStr = `${periodo.inicio}-${periodo.fim}`;
-      resultado += `<span class="periodo ativo">${periodoStr}</span> `;
-    }
-
+    resultado += `<span class="periodo ${ativo ? 'ativo' : 'inativo'}">${periodoStr}</span> `;
     document.getElementById('aviso_ur').innerHTML = resultado.trim();
   }
 
