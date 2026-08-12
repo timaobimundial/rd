@@ -7,11 +7,11 @@ const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento.querySelector('img');
 
-// Lista de provedores para rotação/fallback (ADSB.lol, Airplanes.live e ADSB.fi)
+// Lista de provedores para rotação/fallback adaptados para evitar bloqueio de CORS no browser
 const API_PROVIDERS = [
     "https://project-i7r19.vercel.app/api/bc",
-    "https://api.airplanes.live/v2/point/-19.794722/-47.958611/70",
-    "https://api.adsb.fi/v2/point/-19.794722/-47.958611/70"
+    "https://corsproxy.io/?" + encodeURIComponent("https://api.airplanes.live/v2/point/-19.794722/-47.958611/70"),
+    "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://api.adsb.fi/v2/point/-19.794722/-47.958611/70")
 ];
 
 // polígono SBUR
