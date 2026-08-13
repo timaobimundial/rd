@@ -7,7 +7,12 @@ const resultadoContainer = document.getElementById('resultado-container');
 const mensagemCarregamento = document.getElementById('mensagem-carregamento');
 const imagemCarregamento = mensagemCarregamento.querySelector('img');
 
-const API_URL = "https://project-i7r19.vercel.app/api/bc";
+// Lista de provedores para rotação/fallback (ADSB.lol, Airplanes.live e ADSB.fi via Vercel)
+const API_PROVIDERS = [
+    "https://project-i7r19.vercel.app/api/bc",
+    "https://project-i7r19.vercel.app/api/airplanes",
+    "https://project-i7r19.vercel.app/api/adsbfi"
+];
 
 // polígono SBUR
 const polygonCoordinates = [
@@ -103,7 +108,7 @@ function abrirMapaAeronave(aircraft) {
 
         const polygonLatLng = polygonCoordinates.map(c => [c[1], c[0]]);
 
-L.polygon(polygonLatLng, {
+        L.polygon(polygonLatLng, {
             color: 'gray',
             fillColor: 'lightgray',
             fillOpacity: 0.5,
@@ -159,7 +164,7 @@ L.polygon(polygonLatLng, {
     // ==========================================
     // CLIQUE NO AVIÃO DO MAPA (INPUT FLUTUANTE)
     // ==========================================
-planeMarker.on('click', function(e) {
+    planeMarker.on('click', function(e) {
         L.DomEvent.stopPropagation(e);
 
         // Se o avião já tinha input aberto, o clique funciona como toggle (fecha)
@@ -181,13 +186,13 @@ planeMarker.on('click', function(e) {
         }
         limparEstimadosAtuais();
 
-// Abre o input com o botão "X" azul e redondo posicionado do lado de fora (à direita)
-const inputHtml = `
-    <div style="position: relative; display: inline-flex; align-items: center;">
-        <input type="text" class="input-estimado-plane" placeholder="" id="input_est_${aircraft.identifier}" maxlength="5" style="width: 53px; padding: 2px 4px; font-size: 11px; background-color: #ffffff !important; color: #000000 !important; border: 1px solid #ccc; border-radius: 3px; outline: none; box-sizing: border-box;">
-        <button id="btn_clear_${aircraft.identifier}" style="position: absolute; left: 100%; margin-left: 4px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; background-color: #1771d1; color: white; border: none; border-radius: 50%; font-size: 10px; line-height: 14px; text-align: center; cursor: pointer; padding: 0; display: block; z-index: 9999;">×</button>
-    </div>
-`;
+        // Abre o input com o botão "X" azul e redondo posicionado do lado de fora (à direita)
+        const inputHtml = `
+            <div style="position: relative; display: inline-flex; align-items: center;">
+                <input type="text" class="input-estimado-plane" placeholder="" id="input_est_${aircraft.identifier}" maxlength="5" style="width: 53px; padding: 2px 4px; font-size: 11px; background-color: #ffffff !important; color: #000000 !important; border: 1px solid #ccc; border-radius: 3px; outline: none; box-sizing: border-box;">
+                <button id="btn_clear_${aircraft.identifier}" style="position: absolute; left: 100%; margin-left: 4px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; background-color: #1771d1; color: white; border: none; border-radius: 50%; font-size: 10px; line-height: 14px; text-align: center; cursor: pointer; padding: 0; display: block; z-index: 9999;">×</button>
+            </div>
+        `;
 
         const inputIcon = L.divIcon({
             className: 'custom-input-container',
@@ -309,7 +314,6 @@ const inputHtml = `
 }
 
 async function buscarAeronavesProximas() {
-    // Quando uma nova consulta global for disparada na tabela pelo temporizador, zera o mapa
     limparMapaCompleto();
 
     const sburLongitude = sbur[0];
@@ -318,10 +322,25 @@ async function buscarAeronavesProximas() {
     imagemCarregamento.style.display = 'block';
 
     try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
+        let ac = [];
+        let data = null;
 
-        const ac = data.ac || [];
+        // Tenta consumir cada endpoint da lista até encontrar um que retorne aeronaves
+        for (const url of API_PROVIDERS) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) continue;
+
+                const resData = await response.json();
+                if (resData && resData.ac && resData.ac.length > 0) {
+                    data = resData;
+                    ac = resData.ac;
+                    break; // Sucesso: encontrou dados válidos
+                }
+            } catch (e) {
+                console.warn(`Falha na busca pelo endpoint ${url}:`, e);
+            }
+        }
 
         if (!ac.length) {
             mensagemCarregamento.textContent = 'NIL';
