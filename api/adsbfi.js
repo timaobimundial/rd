@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'GET');
 
     try {
-        const response = await fetch('https://api.adsb.fi/v2/point/-19.794722/-47.958611/70', {
+        const response = await fetch('https://opendata.adsb.fi/api/v2/lat/-19.794722/lon/-47.958611/dist/70', {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 'Accept': 'application/json'
