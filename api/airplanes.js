@@ -5,8 +5,9 @@ export default async function handler(req, res) {
     try {
         const response = await fetch('https://api.airplanes.live/v2/point/-19.794722/-47.958611/70', {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Accept': 'application/json'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/json',
+                'Referer': 'https://airplanes.live/'
             }
         });
 
