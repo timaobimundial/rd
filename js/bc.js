@@ -148,18 +148,18 @@ function abrirMapaAeronave(aircraft) {
 
     aircraft.marker = planeMarker;
 
-    planeMarker.bindTooltip(
-        `<div style="text-align:center">
-            ${aircraft.identifier}<br>
-            ${aircraft.radial.replace('URB', '').replace('°', '')}° ${aircraft.distanciaNM.toFixed(0)}NM
-        </div>`,
-        {
-            permanent: true,
-            direction: "top",
-            offset: [0, -15],
-            className: "tooltip-aeronave"
-        }
-    );
+planeMarker.bindTooltip(
+    `<div style="text-align:center">
+        ${aircraft.identifier} ${aircraft.altitude}<br>
+        ${aircraft.radial.replace('URB', '').replace('°', '')}° ${aircraft.distanciaNM.toFixed(0)}NM
+    </div>`,
+    {
+        permanent: true,
+        direction: "top",
+        offset: [0, -15],
+        className: "tooltip-aeronave"
+    }
+);
 
     // ==========================================
     // CLIQUE NO AVIÃO DO MAPA (INPUT FLUTUANTE)
