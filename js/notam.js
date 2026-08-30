@@ -8,7 +8,7 @@ if (window.XMLHttpRequest) {
 
 client.open(
     'GET',
-    'https://aisweb.decea.mil.br/api/?apiKey=1505393075&apiPass=1f301b84-0a7c-11ed-9f5b-0050569ac2e1&area=notam&icaocode=sbur'
+    'https://aisweb.decea.mil.br/api/?apiKey=1505393075&apiPass=1f301b84-0a7c-11ed-9f5b-0050569ac2e1&area=notam&icaocode=sbxu'
 );
 client.responseType = "document";
 
