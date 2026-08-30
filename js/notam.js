@@ -362,7 +362,7 @@ Promise.all([
              */
             if (origem === "SBXU") {
                 tableString +=
-                    "<tr><td style='font-size:14px;color:#a3a3a3'>" +
+                    "<tr><td style='font-size:16px;color:#a3a3a3'>" +
                     "(NOTAM DA TMA)" +
                     "</td></tr>";
             }
