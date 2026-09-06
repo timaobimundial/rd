@@ -119,13 +119,12 @@ function verificarPeriodoSBUL() {
     //
     // Para os demais dias, o período iniciado na noite
     // anterior é válido até 02:20.
-    if (periodo.inicio === '2345') {
-      if (diaSemana === 0) {
-        // Domingo não possui período 23:45.
+if (periodo.inicio === '2345') {
+      if (diaSemana === 0 && horaAtual >= '2345') {
+        // Domingo à noite não tem 23:45
         ativo = false;
       } else if (diaSemana === 1 && horaAtual <= '0220') {
-        // Segunda 00:00-02:20 pertence ao período
-        // iniciado no domingo, que não existe.
+        // Segunda de madrugada não tem overnight vindo do domingo
         ativo = false;
       }
     }
