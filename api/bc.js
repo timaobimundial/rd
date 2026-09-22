@@ -8,17 +8,32 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Adicionamos headers simulando um navegador/cliente para a API do adsb.lol não bloquear
     const response = await fetch(
-      "https://api.adsb.lol/v2/point/-19.794722/-47.958611/70"
+      "https://api.adsb.lol/v2/point/-19.794722/-47.958611/70",
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) RadarApp/1.0",
+          "Accept": "application/json"
+        }
+      }
     );
 
     const text = await response.text();
-    
-    // Adicione isso para ver o que a API externa está respondendo nos logs da Vercel
-    console.log("Status ADSB:", response.status);
-    console.log("Resposta ADSB:", text);
 
-    let data = JSON.parse(text);
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      // Se voltar a dar erro, isso vai mostrar exatamente o que a API respondeu nos logs da Vercel
+      console.error("Texto retornado que não é JSON:", text);
+      return res.status(500).json({
+        ac: [],
+        error: true,
+        message: `API externa retornou algo inválido: ${text.substring(0, 100)}`
+      });
+    }
+
     const ac = data.ac || [];
 
     return res.status(200).json({
@@ -27,7 +42,7 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
-    console.error("Erro interno:", err); // Loga o erro real no console da Vercel
+    console.error("Erro interno:", err);
     return res.status(500).json({
       ac: [],
       error: true,
