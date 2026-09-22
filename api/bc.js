@@ -1,10 +1,8 @@
 export default async function handler(req, res) {
-  // 1. Sempre define o CORS logo no início para qualquer resposta (sucesso ou erro)
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // 2. Se for uma requisição OPTIONS (preflight do navegador), encerra aqui com sucesso
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -15,19 +13,12 @@ export default async function handler(req, res) {
     );
 
     const text = await response.text();
+    
+    // Adicione isso para ver o que a API externa está respondendo nos logs da Vercel
+    console.log("Status ADSB:", response.status);
+    console.log("Resposta ADSB:", text);
 
-    let data;
-
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      return res.status(500).json({
-        ac: [],
-        error: true,
-        message: "API retornou resposta inválida"
-      });
-    }
-
+    let data = JSON.parse(text);
     const ac = data.ac || [];
 
     return res.status(200).json({
@@ -36,6 +27,7 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
+    console.error("Erro interno:", err); // Loga o erro real no console da Vercel
     return res.status(500).json({
       ac: [],
       error: true,
