@@ -466,7 +466,7 @@ async function buscarAeronavesProximas() {
 
             const nivelDeVooAbaixoDe195 =
                 aircraft.flightLevel != null &&
-                aircraft.flightLevel <= 469;
+                aircraft.flightLevel <= 195;
 
             if (aircraft.dentroPoligono && nivelDeVooAbaixoDe195) {
                 identifierCell.classList.add('dentro-poligono-e-abaixo-f195');
