@@ -35,8 +35,8 @@
     display: inline-block;
     vertical-align: middle;
     margin-top: 2px;
+    text-align: center;
 }
-
 
 .tooltip-aeronave {
     font-family: arial;
