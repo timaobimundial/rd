@@ -19,16 +19,21 @@
     text-align: center;
     white-space: nowrap;
 }
+
+/* ADICIONE ESTA LINHA TEMPORARIAMENTE PARA TESTAR EM TODAS */
+#resultado-table tr td:first-child {
+    border: 1px solid #2c6e99;
+    border-radius: 4px;
+    padding: 0 3px;
+    display: inline-block;
+}
+
 #resultado-table tr {
     border-bottom: 1px solid transparent; /* Mantém o espaçamento transparente */
 }
 
-.dentro-poligono-e-abaixo-f195 {
-    text-decoration: none;
-    border: 1px solid #2c6e99;
-    border-radius: 4px;
-    padding: 0 3px;
-}
+
+
 
 .tooltip-aeronave {
     font-family: arial;
