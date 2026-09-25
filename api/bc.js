@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   try {
     // Adicionamos headers simulando um navegador/cliente para a API do adsb.lol não bloquear
     const response = await fetch(
-      "https://api.adsb.lol/v2/point/-19.794722/-47.958611/70",
+      "https://api.adsb.lol/v2/point/-19.794722/-47.958611/90",
       {
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) RadarApp/1.0",
