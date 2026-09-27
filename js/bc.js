@@ -453,6 +453,10 @@ async function buscarAeronavesProximas() {
 
             const identifierCell = row.insertCell();
             identifierCell.textContent = aircraft.identifier;
+
+// ADICIONE ESTA LINHA ABAIXO PARA CENTRALIZAR O CONTEÚDO DA CÉLULA:
+        identifierCell.style.textAlign = 'center';
+
             
             if (aircraft.callsign && aircraft.registration) {
                 if (aircraft.identifier === aircraft.callsign) {
