@@ -32,14 +32,14 @@
 
 .dentro-poligono-e-abaixo-f195 {
     text-decoration: none !important;
-    border: 2px solid #2c6e99 !important;
+    border: 3px solid #2c6e99 !important;
     border-radius: 4px !important;
     padding: 1px 0px !important;
     display: block !important;
     width: 100% !important;
     text-align: center !important;
     box-sizing: border-box !important;
-    margin-top: 3px !important; /* Aumente ou diminua este valor para alinhar perfeitamente na vertical */
+    margin-top: 1px !important; /* Aumente ou diminua este valor para alinhar perfeitamente na vertical */
 }
 
 
