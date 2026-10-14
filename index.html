@@ -600,29 +600,7 @@ $(document).ready(function () {
           
 
 
-<script>
-
-var url = "https://api-redemet.decea.mil.br/mensagens/metar/SBUL?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
-
-$(document).ready(function(){
-  $.ajax({
-    url: url,
-    dataType: 'json',
-      error: function(){
-        console.log('JSON FAILED for data');
-      },
-    success:function(results){
- 
-      var cartItemsList = document.getElementById("cartItemsList");
-
-      results.data.data.forEach(function(element) {
-      cartItemsList.insertAdjacentHTML( 'beforeend',   "<li>"  + "<b>"  + element.mens + "</b>" + "</li>");
-    }); // end of forEach
-    }  // end of success fn
-   }) // end of Ajax call
- }) // end of $(document).ready() function
-</script>
-		
+	
 
   
 <script>
