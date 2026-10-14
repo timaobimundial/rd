@@ -604,37 +604,26 @@ $(document).ready(function () {
 
   
 <script>
+
 var url = "https://api-redemet.decea.mil.br/mensagens/metar/SBUL,SBCF,SBBH,SBBR,SBKP,SBSP,SBGR,SBAX,SBSR,SBRP,SBJD,SBMT,SBIT,SBGO,SBNV,SIMK,SNDV,SNPD,SWLC?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
 
 $(document).ready(function(){
   $.ajax({
     url: url,
     dataType: 'json',
-    error: function(){
-      console.log('JSON FAILED for data');
-    },
-    success: function(results){
+      error: function(){
+        console.log('JSON FAILED for data');
+      },
+    success:function(results){
+
       var cartItemsList = document.getElementById("cartItemsList");
-      var dados = results.data.data;
 
-      // 1. Procura se o SBUL está presente nos dados retornados
-      var indexSbul = dados.findIndex(function(element) {
-        return element.mens.startsWith("METAR SBUL");
-      });
-
-      // 2. Se encontrar, remove ele da posição atual e coloca no início (índice 0)
-      if (indexSbul !== -1) {
-        var sbulItem = dados.splice(indexSbul, 1)[0];
-        dados.unshift(sbulItem);
-      }
-
-      // 3. Renderiza a lista na tela (com o SBUL garantido como o primeiro)
-      dados.forEach(function(element) {
-        cartItemsList.insertAdjacentHTML('beforeend', "<li>" + "<b>" + element.mens + "</b>" + "</li>");
-      });
-    }
-  });
-});
+      results.data.data.forEach(function(element) {
+      cartItemsList.insertAdjacentHTML( 'beforeend',   "<li>"  + "<b>"  + element.mens + "</b>" + "</li>");
+    }); // end of forEach
+    }  // end of success fn
+   }) // end of Ajax call
+ }) // end of $(document).ready() function
 </script>
 
 
