@@ -622,12 +622,15 @@ async function processarComandoEstimado(aircraft, comando) {
 }
 
 function desenharCenarioEstimado(latFixo, lngFixo, nomePonto, distFixoNM, gs, pontoAviao, pontoDestino) {
-    // 1. Cálculo do Estimado (Minutos e Hora de Chegada)
+    
+
+    // 1. Cálculo do Estimado (Minutos e Hora de Chegada em UTC)
     const tempoHorasFixo = distFixoNM / gs;
     const minFixo = Math.round(tempoHorasFixo * 60);
     const agoraFixo = new Date();
     agoraFixo.setMinutes(agoraFixo.getMinutes() + minFixo);
-    const horaFixoStr = `${agoraFixo.getHours().toString().padStart(2, '0')}:${agoraFixo.getMinutes().toString().padStart(2, '0')}`;
+    const horaFixoStr = `${agoraFixo.getUTCHours().toString().padStart(2, '0')}:${agoraFixo.getUTCMinutes().toString().padStart(2, '0')}`;
+    
 
     // Linha 1 padrão
     let textoFixo = `${nomePonto} +${minFixo.toString().padStart(2, '0')}' ${horaFixoStr}`;
