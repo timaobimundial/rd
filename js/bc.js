@@ -561,62 +561,107 @@ async function processarComandoEstimado(aircraft, comando) {
     let termo = comando.trim().toUpperCase();
     if (!termo) return;
 
-    if (termo.length < 4 || termo.length > 5) return;
-
     let destLat = null, destLng = null, nomePonto = termo;
-
-    // Coordenadas específicas de SBUL (18 53 01S / 048 13 31W em decimais)
-    if (termo === 'SBUL') {
-        destLat = -18.883611;
-        destLng = -48.225278;
-    } else if (termo === 'SBUR') {
-        destLat = sbur[1];
-        destLng = sbur[0];
-    } else if (termo.length === 5 && typeof fixes !== 'undefined' && fixes.length > 0) {
-        const fixEncontrado = fixes.find(f => f.ident === termo);
-        if (fixEncontrado) {
-            destLat = fixEncontrado.lat;
-            destLng = fixEncontrado.lng;
-        }
-    } else if (termo.length === 4) {
-        try {
-            const apiUrl = `https://aisweb.decea.mil.br/api/?apiKey=1505393075&apiPass=1f301b84-0a7c-11ed-9f5b-0050569ac2e1&area=rotaer&icaoCode=${termo}`;
-            const response = await fetch(apiUrl);
-            const xmlText = await response.text();
-            
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-
-            destLat = parseFloat(
-                xmlDoc.querySelector("lat")?.textContent ||
-                xmlDoc.querySelector("latRotaer")?.textContent
-            );
-            destLng = parseFloat(
-                xmlDoc.querySelector("lng")?.textContent ||
-                xmlDoc.querySelector("lngRotaer")?.textContent
-            );
-
-            if (isNaN(destLat) || isNaN(destLng)) {
-                destLat = null;
-                destLng = null;
-            }
-        } catch (e) {
-            destLat = null;
-            destLng = null;
-        }
-    }
-
-    if (destLat === null || destLng === null) return;
+    let distFixoNM = 0;
+    let pontoAviao = turf.point([aircraft.longitude, aircraft.latitude]);
+    let pontoDestino = null;
 
     const gs = parseFloat(aircraft.velocidade);
     if (isNaN(gs) || gs <= 0) return;
 
-    const pontoAviao = turf.point([aircraft.longitude, aircraft.latitude]);
-    const pontoDestino = turf.point([destLng, destLat]);
+    // ==========================================
+    // CÁLCULO DE CRUZAMENTO DA TMA (QUANDO DIGITADO "TMAUR")
+    // ==========================================
+    if (termo === 'TMAUR') {
+        const heading = parseInt(aircraft.rumoMagnetic);
+        if (isNaN(heading)) return;
 
-    // Cálculo de distância em NM
-    const distFixoKM = turf.distance(pontoAviao, pontoDestino, { units: 'kilometers' });
-    const distFixoNM = distFixoKM * 0.539957;
+        // Aplica a compensação de rumo verdadeiro (-22°)
+        const rumoVerdadeiroCompensado = (heading - 22 + 360) % 360;
+
+        // Cria vetor projetado à frente (500 km)
+        const pontoDestinoProj = turf.destination(pontoAviao, 500, rumoVerdadeiroCompensado, { units: 'kilometers' });
+        const linhaVoo = turf.lineString([
+            [aircraft.longitude, aircraft.latitude],
+            pontoDestinoProj.geometry.coordinates
+        ]);
+
+        // Transforma o polígono da TMA em linha de contorno
+        const linhaPoligono = turf.polygonToLine(polygon);
+        const intersecoes = turf.lineIntersect(linhaVoo, linhaPoligono);
+
+        if (!intersecoes.features || intersecoes.features.length === 0) return;
+
+        // Pega a interseção mais próxima à frente do avião
+        let menorDistancia = Infinity;
+        let coordsCruzamento = null;
+
+        intersecoes.features.forEach(feat => {
+            const dist = turf.distance(pontoAviao, feat, { units: 'nauticalmiles' });
+            if (dist > 0.5 && dist < menorDistancia) {
+                menorDistancia = dist;
+                coordsCruzamento = feat.geometry.coordinates; // [lng, lat]
+            }
+        });
+
+        if (!coordsCruzamento) return;
+
+        destLat = coordsCruzamento[1];
+        destLng = coordsCruzamento[0];
+        distFixoNM = menorDistancia;
+        nomePonto = 'TMAUR';
+        pontoDestino = turf.point([destLng, destLat]);
+
+    } else {
+        // Lógica mantida para Fixos, SBUL, SBUR e ICAO de 4 letras
+        if (termo.length < 4 || termo.length > 5) return;
+
+        if (termo === 'SBUL') {
+            destLat = -18.883611;
+            destLng = -48.225278;
+        } else if (termo === 'SBUR') {
+            destLat = sbur[1];
+            destLng = sbur[0];
+        } else if (termo.length === 5 && typeof fixes !== 'undefined' && fixes.length > 0) {
+            const fixEncontrado = fixes.find(f => f.ident === termo);
+            if (fixEncontrado) {
+                destLat = fixEncontrado.lat;
+                destLng = fixEncontrado.lng;
+            }
+        } else if (termo.length === 4) {
+            try {
+                const apiUrl = `https://aisweb.decea.mil.br/api/?apiKey=1505393075&apiPass=1f301b84-0a7c-11ed-9f5b-0050569ac2e1&area=rotaer&icaoCode=${termo}`;
+                const response = await fetch(apiUrl);
+                const xmlText = await response.text();
+                
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+                destLat = parseFloat(
+                    xmlDoc.querySelector("lat")?.textContent ||
+                    xmlDoc.querySelector("latRotaer")?.textContent
+                );
+                destLng = parseFloat(
+                    xmlDoc.querySelector("lng")?.textContent ||
+                    xmlDoc.querySelector("lngRotaer")?.textContent
+                );
+
+                if (isNaN(destLat) || isNaN(destLng)) {
+                    destLat = null;
+                    destLng = null;
+                }
+            } catch (e) {
+                destLat = null;
+                destLng = null;
+            }
+        }
+
+        if (destLat === null || destLng === null) return;
+
+        pontoDestino = turf.point([destLng, destLat]);
+        const distFixoKM = turf.distance(pontoAviao, pontoDestino, { units: 'kilometers' });
+        distFixoNM = distFixoKM * 0.539957;
+    }
 
     desenharCenarioEstimado(destLat, destLng, nomePonto, distFixoNM, gs, pontoAviao, pontoDestino);
 }
