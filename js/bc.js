@@ -572,17 +572,19 @@ async function processarComandoEstimado(aircraft, comando) {
     // ==========================================
     // CÁLCULO DE CRUZAMENTO DA TMA (QUANDO DIGITADO "TMAUR")
     // ==========================================
-    if (termo === 'TMAUR') {
+ if (termo === 'TMAUR') {
         const heading = parseInt(aircraft.rumoMagnetic);
         if (isNaN(heading)) return;
 
-        // Aplica a compensação de rumo verdadeiro (-22°)
+        // Alinha exatamente com a rotação usada no ícone do avião (- 22°)
         const rumoVerdadeiroCompensado = (heading - 22 + 360) % 360;
 
-        // Cria vetor projetado à frente (500 km)
-        const pontoDestinoProj = turf.destination(pontoAviao, 500, rumoVerdadeiroCompensado, { units: 'kilometers' });
+        // Garante a projeção correta a partir das coordenadas geográficas atuais do marcador
+        const pontoAtualCoords = [aircraft.longitude, aircraft.latitude];
+        const pontoDestinoProj = turf.destination(turf.point(pontoAtualCoords), 500, rumoVerdadeiroCompensado, { units: 'kilometers' });
+        
         const linhaVoo = turf.lineString([
-            [aircraft.longitude, aircraft.latitude],
+            pontoAtualCoords,
             pontoDestinoProj.geometry.coordinates
         ]);
 
