@@ -572,7 +572,7 @@ async function processarComandoEstimado(aircraft, comando) {
     // ==========================================
     // CÁLCULO DE CRUZAMENTO DA TMA (QUANDO DIGITADO "TMAUR")
     // ==========================================
- if (termo === 'TMAUR') {
+ if (termo === 'TMA') {
         const heading = parseInt(aircraft.rumoMagnetic);
         if (isNaN(heading)) return;
 
@@ -611,7 +611,7 @@ async function processarComandoEstimado(aircraft, comando) {
         destLat = coordsCruzamento[1];
         destLng = coordsCruzamento[0];
         distFixoNM = menorDistancia;
-        nomePonto = 'TMAUR';
+        nomePonto = 'TMA';
         pontoDestino = turf.point([destLng, destLat]);
 
     } else {
