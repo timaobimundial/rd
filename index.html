@@ -149,8 +149,8 @@ document.addEventListener('DOMContentLoaded', verificarPeriodoSBUL);
     const minuto = agora.getUTCMinutes().toString().padStart(2, '0');
     const horaAtual = hora + minuto;
 
-    // Data limite: 18/11/2026 08:00 UTC
-    const dataFinal = new Date(Date.UTC(2026, 10, 18, 8, 0));
+    // Data limite: 19/12/2026 08:00 UTC
+    const dataFinal = new Date(Date.UTC(2026, 11, 19, 8, 0));
     if (agora.getTime() >= dataFinal.getTime()) {
       document.getElementById('aviso_ur').innerHTML = '';
       return;
