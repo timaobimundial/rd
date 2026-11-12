@@ -604,42 +604,61 @@ $(document).ready(function () {
 
   
 <script>
-
-var url = "https://api-redemet.decea.mil.br/mensagens/metar/SBUL,SBCF,SBBH,SBBR,SBKP,SBSP,SBGR,SBJH,SBAX,SBSR,SBRP,SBJD,SBMT,SBIT,SBGO,SBNV,SIMK,SNDV,SNPD,SWLC?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
+// 1. Script para os 3 METARs específicos (SBAX, SBRP, SBUL)
+var urlDestaque = "https://api-redemet.decea.mil.br/mensagens/metar/SBAX,SBRP,SBUL?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
 
 $(document).ready(function(){
   $.ajax({
-    url: url,
+    url: urlDestaque,
     dataType: 'json',
       error: function(){
-        console.log('JSON FAILED for data');
+        console.log('JSON FAILED for destaque');
       },
     success:function(results){
-
-      var cartItemsList = document.getElementById("cartItemsList");
-
+      var cartDestaqueList = document.getElementById("cartDestaqueList");
       results.data.data.forEach(function(element) {
-      cartItemsList.insertAdjacentHTML( 'beforeend',   "<li>"  + "<b>"  + element.mens + "</b>" + "</li>");
-    }); // end of forEach
-    }  // end of success fn
-   }) // end of Ajax call
- }) // end of $(document).ready() function
+        cartDestaqueList.insertAdjacentHTML('beforeend', "<li><b>" + element.mens + "</b></li>");
+      });
+    }
+   })
+});
+
+// 2. Script para todos os outros METARs restantes
+var urlRestantes = "https://api-redemet.decea.mil.br/mensagens/metar/SBCF,SBBH,SBBR,SBKP,SBSP,SBGR,SBJH,SBSR,SBJD,SBMT,SBIT,SBGO,SBNV,SIMK,SNDV,SNPD,SWLC?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
+
+$(document).ready(function(){
+  $.ajax({
+    url: urlRestantes,
+    dataType: 'json',
+      error: function(){
+        console.log('JSON FAILED for restantes');
+      },
+    success:function(results){
+      var cartRestantesList = document.getElementById("cartRestantesList");
+      results.data.data.forEach(function(element) {
+        cartRestantesList.insertAdjacentHTML('beforeend', "<li><b>" + element.mens + "</b></li>");
+      });
+    }
+   })
+});
 </script>
-
-
 
  <div id="cart">
 
 <table>
  <tr>
     <th style="text-align: left">
-    <ul id="cartItemsList"></ul>
+    <ul id="cartDestaqueList" style="list-style: none; padding: 0; margin: 0;"></ul>
+
+    <div style="background-color: #286090; height: 3px; border-radius: 3px; width: 100%; margin: 6px 0;"></div>
+
+    <ul id="cartRestantesList" style="list-style: none; padding: 0; margin: 0;"></ul>
     </th>
     <th style="vertical-align: bottom; padding: 0px 0px 6px 0px">
     
     </div>    
 </th>
-  </tr>
+ </tr>
 
 </table>
  </div>
