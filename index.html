@@ -149,8 +149,8 @@ document.addEventListener('DOMContentLoaded', verificarPeriodoSBUL);
     const minuto = agora.getUTCMinutes().toString().padStart(2, '0');
     const horaAtual = hora + minuto;
 
-    // Data limite: 19/12/2026 08:00 UTC
-    const dataFinal = new Date(Date.UTC(2026, 11, 19, 8, 0));
+    // Data limite: 18/11/2026 08:00 UTC
+    const dataFinal = new Date(Date.UTC(2026, 10, 18, 8, 0));
     if (agora.getTime() >= dataFinal.getTime()) {
       document.getElementById('aviso_ur').innerHTML = '';
       return;
@@ -513,11 +513,12 @@ document.addEventListener('DOMContentLoaded', verificarPeriodoSBUL);
 
 
 
-<div class="container_metar">
+        <div class="container_metar">
 
 <div class="metar_sbur">
 
 <script>
+
 var urlsbur = "https://api-redemet.decea.mil.br/mensagens/metar/SBUR?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
 
 $(document).ready(function(){
@@ -528,13 +529,15 @@ $(document).ready(function(){
         console.log('JSON FAILED for data');
       },
     success:function(results){
-     var cartsburItemsList = document.getElementById("cartsburItemsList");
+ 
+      var cartsburItemsList = document.getElementById("cartsburItemsList");
+
       results.data.data.forEach(function(element) {
       cartsburItemsList.insertAdjacentHTML( 'beforeend',   "<li class='metar_sbur'>"  + "<b>"  + element.mens + "</b>" + "</li>");
-    }); 
-    } 
-   }) 
-}) 
+    }); // end of forEach
+    }  // end of success fn
+   }) // end of Ajax call
+ }) // end of $(document).ready() function
 </script>
 
 
@@ -587,7 +590,7 @@ $(document).ready(function () {
     
     </div>    
 </th>
- </tr>
+  </tr>
 
 </table>
  </div>
@@ -601,62 +604,26 @@ $(document).ready(function () {
 
   
 <script>
-// 1. Apenas os 3 METARs específicos
-var urlDestaque = "https://api-redemet.decea.mil.br/mensagens/metar/SBAX,SBRP,SBUL?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
+
+var url = "https://api-redemet.decea.mil.br/mensagens/metar/SBUL,SBCF,SBBH,SBBR,SBKP,SBSP,SBGR,SBJH,SBAX,SBSR,SBRP,SBJD,SBMT,SBIT,SBGO,SBNV,SIMK,SNDV,SNPD,SWLC?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
 
 $(document).ready(function(){
   $.ajax({
-    url: urlDestaque,
-    dataType: 'json',
-      error: function(){
-        console.log('JSON FAILED for destaque');
-      },
-    success:function(results){
-      var cartDestaqueList = document.getElementById("cartDestaqueList");
-      results.data.data.forEach(function(element) {
-        cartDestaqueList.insertAdjacentHTML('beforeend', "<li><b>" + element.mens + "</b></li>");
-      });
-    }
-   })
-});
-
-// 2. Todos os demais METARs restantes
-var urlRestantes = "https://api-redemet.decea.mil.br/mensagens/metar/SBCF,SBBH,SBBR,SBKP,SBSP,SBGR,SBJH,SBSR,SBRP_outro,SBJD,SBMT,SBIT,SBGO,SBNV,SIMK,SNDV,SNPD,SWLC?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
-// Nota: Ajuste a lista acima removendo SBAX, SBRP e SBUL para não duplicarem, mantendo o restante que você deseja.
-</script>
-
-<!-- Script corrigido para filtrar automaticamente ou você pode usar listas separadas -->
-<script>
-var urlGeral = "https://api-redemet.decea.mil.br/mensagens/metar/SBUL,SBCF,SBBH,SBBR,SBKP,SBSP,SBGR,SBJH,SBAX,SBSR,SBRP,SBJD,SBMT,SBIT,SBGO,SBNV,SIMK,SNDV,SNPD,SWLC?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
-
-$(document).ready(function(){
-  $.ajax({
-    url: urlGeral,
+    url: url,
     dataType: 'json',
       error: function(){
         console.log('JSON FAILED for data');
       },
     success:function(results){
-      var cartDestaqueList = document.getElementById("cartDestaqueList");
-      var cartRestantesList = document.getElementById("cartRestantesList");
 
-      // Quaisicao dos 3 específicos
-      consticaoDestaque = ["SBAX", "SBRP", "SBUL"];
+      var cartItemsList = document.getElementById("cartItemsList");
 
       results.data.data.forEach(function(element) {
-        // Extrai o ICAO do METAR (ex: "METAR SBUL ..." -> pega a 2ª palavra)
-        const partes = element.mens.split(" ");
-        const icao = partes[1];
-
-        if (consticaoDestaque.includes(icao)) {
-          cartDestaqueList.insertAdjacentHTML('beforeend', "<li><b>" + element.mens + "</b></li>");
-        } else {
-          cartRestantesList.insertAdjacentHTML('beforeend', "<li><b>" + element.mens + "</b></li>");
-        }
-      });
-    }
-   })
-});
+      cartItemsList.insertAdjacentHTML( 'beforeend',   "<li>"  + "<b>"  + element.mens + "</b>" + "</li>");
+    }); // end of forEach
+    }  // end of success fn
+   }) // end of Ajax call
+ }) // end of $(document).ready() function
 </script>
 
 
@@ -665,27 +632,17 @@ $(document).ready(function(){
 
 <table>
  <tr>
-    <th style="text-align: left; width: 100%;">
-    <!-- Lista dos 3 em destaque -->
-    <ul id="cartDestaqueList" style="list-style: none; padding: 0; margin: 0;"></ul>
-
-    <!-- Linha Azul Separadora -->
-    <div style="background-color: #286090; height: 3px; border-radius: 3px; width: 100%; margin: 6px 0;"></div>
-
-    <!-- Lista dos demais METARs -->
-    <ul id="cartRestantesList" style="list-style: none; padding: 0; margin: 0;"></ul>
+    <th style="text-align: left">
+    <ul id="cartItemsList"></ul>
     </th>
     <th style="vertical-align: bottom; padding: 0px 0px 6px 0px">
     
     </div>    
 </th>
- </tr>
+  </tr>
 
 </table>
  </div>
-
-
-        </div>
 
 
         </div>
