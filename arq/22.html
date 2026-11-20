@@ -2,26 +2,26 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Nossa Linha do Tempo</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    body {
+    html, body {
+      width: 100%;
+      max-width: 100vw;
+      height: 100dvh;
+      overflow: hidden;
       background-color: #ffffff;
       color: #222222;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      height: 100dvh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      position: relative;
+      position: fixed;
+      inset: 0;
       user-select: none;
     }
 
@@ -29,12 +29,15 @@
     #tela-inicial {
       position: fixed;
       inset: 0;
+      width: 100%;
+      height: 100%;
       background-color: #ffffff;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
+      padding: 24px;
       z-index: 100;
       transition: opacity 0.6s ease, visibility 0.6s ease;
     }
@@ -49,13 +52,13 @@
       background-color: #111111;
       color: #ffffff;
       border: none;
-      padding: 16px 42px;
-      font-size: 1.2rem;
+      padding: 20px 54px;
+      font-size: 1.35rem;
       font-weight: 600;
       border-radius: 50px;
       cursor: pointer;
       letter-spacing: 0.5px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
       transition: transform 0.2s ease, background-color 0.2s ease;
     }
 
@@ -65,11 +68,11 @@
     }
 
     #btn-abrir:active {
-      transform: scale(0.98);
+      transform: scale(0.96);
     }
 
     .aviso-volume {
-      font-size: 0.92rem;
+      font-size: 1rem;
       color: #666666;
       font-weight: 500;
       letter-spacing: 0.2px;
@@ -83,7 +86,8 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      perspective: 1000px;
+      padding: 20px 16px 90px;
+      overflow: hidden;
       opacity: 0;
       transition: opacity 0.8s ease;
     }
@@ -94,20 +98,23 @@
 
     /* Emojis centrais fixos */
     .emojis-fixos {
-      font-size: 4.5rem;
+      font-size: clamp(4.2rem, 18vw, 5.2rem);
       line-height: 1.1;
       margin-bottom: 24px;
+      text-align: center;
       z-index: 10;
       filter: drop-shadow(0 4px 10px rgba(0,0,0,0.06));
       transition: transform 0.4s ease;
     }
 
-    /* Área dos slides que deslizam e giram */
+    /* Área dos slides que deslizam e giram (com overflow hidden para não estourar a largura no iOS) */
     .palco-slides {
       width: 100%;
-      max-width: 500px;
-      height: 180px;
+      max-width: 480px;
+      height: 165px;
       position: relative;
+      overflow: hidden;
+      perspective: 1000px;
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -115,14 +122,16 @@
 
     .slide {
       position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
-      padding: 0 20px;
+      padding: 0 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
       opacity: 0;
-      transform: translateX(120%) rotateY(-35deg);
+      transform: translateX(100%) rotateY(-30deg);
       transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease;
       pointer-events: none;
     }
@@ -137,24 +146,24 @@
     /* Slide que já passou (sai para a esquerda) */
     .slide.saiu {
       opacity: 0;
-      transform: translateX(-120%) rotateY(35deg);
+      transform: translateX(-100%) rotateY(30deg);
     }
 
     .icone-marco {
-      font-size: 3.2rem;
+      font-size: clamp(3rem, 13vw, 3.8rem);
       margin-bottom: 10px;
-      line-height: 1;
+      line-height: 1.1;
     }
 
     .texto-principal {
-      font-size: 1.7rem;
+      font-size: clamp(1.5rem, 6.5vw, 1.9rem);
       font-weight: 700;
       color: #111111;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .data-marco {
-      font-size: 1.35rem;
+      font-size: clamp(1.3rem, 5.5vw, 1.5rem);
       font-weight: 600;
       color: #555555;
       letter-spacing: 1px;
@@ -162,9 +171,9 @@
 
     /* Linha do tempo horizontal abaixo */
     .linha-tempo-container {
-      width: 80%;
-      max-width: 360px;
-      margin-top: 24px;
+      width: 82%;
+      max-width: 340px;
+      margin-top: 20px;
       position: relative;
       display: flex;
       align-items: center;
@@ -197,8 +206,8 @@
     }
 
     .ponto {
-      width: 12px;
-      height: 12px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       background-color: #e5e5e5;
       border: 2px solid #ffffff;
@@ -211,53 +220,51 @@
       transform: scale(1.3);
     }
 
-    /* Botão Próximo no canto inferior direito */
+    /* Botão Próximo no canto inferior direito (maior para toque no celular) */
     #btn-proximo {
       position: fixed;
-      bottom: 28px;
-      right: 28px;
-      background-color: #f2f2f2;
-      color: #111111;
-      border: 1px solid #dddddd;
-      padding: 12px 24px;
-      font-size: 1rem;
+      bottom: calc(24px + env(safe-area-inset-bottom));
+      right: 22px;
+      background-color: #111111;
+      color: #ffffff;
+      border: none;
+      padding: 16px 30px;
+      font-size: 1.15rem;
       font-weight: 600;
-      border-radius: 30px;
+      border-radius: 50px;
       cursor: pointer;
       display: none;
       align-items: center;
-      gap: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-      transition: all 0.25s ease;
+      gap: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      transition: opacity 0.3s ease, transform 0.2s ease;
       z-index: 50;
     }
 
-    #btn-proximo:hover {
-      background-color: #111111;
-      color: #ffffff;
-      border-color: #111111;
+    #btn-proximo:active {
+      transform: scale(0.96);
     }
 
     /* Botão Reiniciar (seta girando) no canto inferior direito */
     #btn-reiniciar {
       position: fixed;
-      bottom: 28px;
-      right: 28px;
-      width: 48px;
-      height: 48px;
-      background-color: #f2f2f2;
-      color: #111111;
-      border: 1px solid #dddddd;
+      bottom: calc(24px + env(safe-area-inset-bottom));
+      right: 22px;
+      width: 58px;
+      height: 58px;
+      background-color: #111111;
+      color: #ffffff;
+      border: none;
       border-radius: 50%;
       cursor: pointer;
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
       opacity: 0;
       pointer-events: none;
       transform: scale(0.8);
-      transition: opacity 0.4s ease, transform 0.3s ease, background-color 0.25s ease, color 0.25s ease;
+      transition: opacity 0.4s ease, transform 0.3s ease;
       z-index: 51;
     }
 
@@ -267,28 +274,19 @@
       transform: scale(1);
     }
 
-    #btn-reiniciar:hover {
-      background-color: #111111;
-      color: #ffffff;
-      border-color: #111111;
+    #btn-reiniciar:active {
+      transform: scale(0.94);
     }
 
     .icone-girando {
-      width: 22px;
-      height: 22px;
+      width: 26px;
+      height: 26px;
       animation: girarSeta 3.5s linear infinite;
     }
 
     @keyframes girarSeta {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 480px) {
-      .emojis-fixos { font-size: 3.8rem; }
-      .icone-marco { font-size: 2.8rem; }
-      .texto-principal { font-size: 1.45rem; }
-      .data-marco { font-size: 1.2rem; }
     }
   </style>
 </head>
@@ -312,9 +310,9 @@
         <div class="data-marco">21/11/2004</div>
       </div>
 
-      <!-- Passo 3 -->
+      <!-- Passo 3 (Noivo e Noiva) -->
       <div class="slide" data-step="1">
-        <div class="icone-marco">⛪</div>
+        <div class="icone-marco">🤵👰</div>
         <div class="data-marco">2008</div>
       </div>
 
@@ -354,13 +352,13 @@
 
   <!-- Botão Reiniciar (seta girando) na última tela -->
   <button id="btn-reiniciar" title="Voltar ao início" aria-label="Voltar ao início">
-    <svg class="icone-girando" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+    <svg class="icone-girando" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
       <path d="M21 3v5h-5"/>
     </svg>
   </button>
 
-  <!-- PLACEHOLDER DO MP3: substitua pelo caminho/nome do seu arquivo -->
+  <!-- Áudio -->
   <audio id="musica-fundo" src="dif.mp3" loop preload="auto"></audio>
 
   <script>
@@ -383,9 +381,7 @@
       musica.load();
       const promessa = musica.play();
       if (promessa !== undefined) {
-        promessa.catch(() => {
-          // Evita erro caso o arquivo placeholder ainda não tenha sido substituído
-        });
+        promessa.catch(() => {});
       }
 
       telaInicial.classList.add('oculta');
@@ -396,27 +392,22 @@
     // Avança na linha do tempo
     btnProximo.addEventListener('click', () => {
       if (etapaAtual < totalEtapas - 1) {
-        // Marca o slide atual como "saiu" (vai para a esquerda)
         slides[etapaAtual].classList.remove('ativo');
         slides[etapaAtual].classList.add('saiu');
 
         etapaAtual++;
 
-        // Ativa o próximo slide
         slides[etapaAtual].classList.add('ativo');
 
-        // Atualiza a barra e os pontos da linha do tempo
         const porcentagem = (etapaAtual / (totalEtapas - 1)) * 100;
         linhaProgresso.style.width = `${porcentagem}%`;
         pontos[etapaAtual].classList.add('ativo');
 
-        // Leve pulso nos emojis fixos para dar vida na transição
         emojisCentrais.style.transform = 'scale(1.08)';
         setTimeout(() => {
           emojisCentrais.style.transform = 'scale(1)';
         }, 250);
 
-        // Se chegou no último passo, esconde o botão "Próximo" e mostra o de reiniciar
         if (etapaAtual === totalEtapas - 1) {
           btnProximo.style.opacity = '0';
           btnProximo.style.pointerEvents = 'none';
@@ -429,7 +420,6 @@
     btnReiniciar.addEventListener('click', () => {
       etapaAtual = 0;
 
-      // Reseta todos os slides
       slides.forEach((slide, index) => {
         slide.classList.remove('ativo', 'saiu');
         if (index === 0) {
@@ -437,13 +427,11 @@
         }
       });
 
-      // Reseta barra e pontos
       linhaProgresso.style.width = '0%';
       pontos.forEach((ponto, index) => {
         ponto.classList.toggle('ativo', index === 0);
       });
 
-      // Esconde botão de reiniciar e reexibe o botão "Próximo"
       btnReiniciar.classList.remove('visivel');
       btnProximo.style.opacity = '1';
       btnProximo.style.pointerEvents = 'auto';
