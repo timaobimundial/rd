@@ -518,26 +518,48 @@ document.addEventListener('DOMContentLoaded', verificarPeriodoSBUL);
 <div class="metar_sbur">
 
 <script>
+var apiKey = "welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
+var urlMetarSbur = "https://api-redemet.decea.mil.br/mensagens/metar/SBUR?api_key=" + apiKey;
+var urlTafSbur   = "https://api-redemet.decea.mil.br/mensagens/taf/SBUR?api_key=" + apiKey;
 
-var urlsbur = "https://api-redemet.decea.mil.br/mensagens/metar/SBUR?api_key=welgZua24vqAod3zlxzJ9DfBz57evfVQore1f7aL";
+// Quebra o texto do TAF em linhas para o tooltip não ficar largo demais
+function formatarTafParaTitle(tafTexto) {
+  if (!tafTexto) return "TAF indisponível no momento";
 
-$(document).ready(function(){
-  $.ajax({
-    url: urlsbur,
-    dataType: 'json',
-      error: function(){
-        console.log('JSON FAILED for data');
-      },
-    success:function(results){
- 
-      var cartsburItemsList = document.getElementById("cartsburItemsList");
+  return tafTexto
+    .trim()
+    .replace(/\s+/g, " ") // normaliza espaços duplicados
+    // Quebra antes de mudanças de condição comuns no TAF
+    .replace(/\s+(BECMG|TEMPO|PROB\d{2}|FM\d{6})/g, "\n$1")
+    // Quebra depois da janela de validade (ex: 210600Z 2106/2206) para separar cabeçalho do corpo
+    .replace(/(\d{4}\/\d{4})\s+/, "$1\n");
+}
 
-      results.data.data.forEach(function(element) {
-      cartsburItemsList.insertAdjacentHTML( 'beforeend',   "<li class='metar_sbur'>"  + "<b>"  + element.mens + "</b>" + "</li>");
-    }); // end of forEach
-    }  // end of success fn
-   }) // end of Ajax call
- }) // end of $(document).ready() function
+$(document).ready(function () {
+  $.when(
+    $.ajax({ url: urlMetarSbur, dataType: "json" }),
+    $.ajax({ url: urlTafSbur,   dataType: "json" })
+  ).done(function (resMetar, resTaf) {
+    var dadosMetar = resMetar[0]?.data?.data || [];
+    var dadosTaf   = resTaf[0]?.data?.data || [];
+
+    var tafBruto = dadosTaf.length > 0 ? dadosTaf[0].mens : "";
+    var textoTafFormatado = formatarTafParaTitle(tafBruto);
+
+    var cartsburItemsList = document.getElementById("cartsburItemsList");
+    cartsburItemsList.innerHTML = "";
+
+    dadosMetar.forEach(function (element) {
+      var li = document.createElement("li");
+      li.className = "metar_sbur";
+      li.title = textoTafFormatado;
+      li.innerHTML = "<b>" + element.mens + "</b>";
+      cartsburItemsList.appendChild(li);
+    });
+  }).fail(function () {
+    console.log("JSON FAILED for SBUR METAR/TAF");
+  });
+});
 </script>
 
 
