@@ -38,6 +38,34 @@ window.aeronavesExibidas = [];
 window.linhasSBUR = [];
 window.linhasRumo = [];
 window.estimadosMarkers = []; // Armazena marcadores dos estimados
+window.aeronaveClicada = null;
+
+function atualizarTitleRelativo(aircraftAlvo, planeMarker) {
+    const el = planeMarker.getElement();
+    const img = el ? el.querySelector('img') : null;
+    if (!img) return;
+
+    const origem = window.aeronaveClicada;
+
+    if (!origem || origem.identifier === aircraftAlvo.identifier) {
+        img.removeAttribute('title');
+        return;
+    }
+
+    const pontoOrigem = turf.point([origem.longitude, origem.latitude]);
+    const pontoAlvo = turf.point([aircraftAlvo.longitude, aircraftAlvo.latitude]);
+
+    const bearingTrue = turf.bearing(pontoOrigem, pontoAlvo);
+    const radialMag = Math.round((bearingTrue - declinacaoSBUR + 360) % 360)
+        .toString()
+        .padStart(3, '0');
+
+    const distNM = Math.round(
+        turf.distance(pontoOrigem, pontoAlvo, { units: 'kilometers' }) * 0.539957
+    );
+
+    img.title = `${radialMag}° ${distNM}NM`;
+}
 
 // Limpa marcadores de estimado da tela
 function limparEstimadosAtuais() {
@@ -50,6 +78,7 @@ function limparEstimadosAtuais() {
 // Limpa de forma absoluta todas as camadas do Leaflet e reseta os arrays de memória
 function limparMapaCompleto() {
     limparEstimadosAtuais();
+    window.aeronaveClicada = null;
 
     if (window.aircraftMap) {
         if (window.linhasSBUR) {
@@ -148,6 +177,16 @@ function abrirMapaAeronave(aircraft) {
 
     aircraft.marker = planeMarker;
 
+    planeMarker.on('mouseover', function () {
+        atualizarTitleRelativo(aircraft, planeMarker);
+    });
+
+    planeMarker.on('mouseout', function () {
+        const el = planeMarker.getElement();
+        const img = el ? el.querySelector('img') : null;
+        if (img) img.removeAttribute('title');
+    });
+
 planeMarker.bindTooltip(
     `<div style="text-align:center">
         ${aircraft.identifier} ${aircraft.altitude}<br>
@@ -172,6 +211,7 @@ planeMarker.bindTooltip(
             window.aircraftMap.removeLayer(aircraft.inputMarker);
             aircraft.inputMarker = null;
             limparEstimadosAtuais();
+            window.aeronaveClicada = null;
             return;
         }
     
@@ -185,6 +225,7 @@ planeMarker.bindTooltip(
             });
         }
         limparEstimadosAtuais();
+        window.aeronaveClicada = aircraft;
 
         // Abre o input com o botão "X" azul e redondo posicionado do lado de fora (à direita)
         const inputHtml = `
@@ -230,6 +271,7 @@ planeMarker.bindTooltip(
                         aircraft.inputMarker = null;
                     }
                     limparEstimadosAtuais();
+                    window.aeronaveClicada = null;
                 });
             }
         }, 100);
