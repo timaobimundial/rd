@@ -55,16 +55,23 @@ function atualizarTitleRelativo(aircraftAlvo, planeMarker) {
     const pontoOrigem = turf.point([origem.longitude, origem.latitude]);
     const pontoAlvo = turf.point([aircraftAlvo.longitude, aircraftAlvo.latitude]);
 
-    const bearingTrue = turf.bearing(pontoOrigem, pontoAlvo);
-    const radialMag = Math.round((bearingTrue - declinacaoSBUR + 360) % 360)
-        .toString()
-        .padStart(3, '0');
-
     const distNM = Math.round(
         turf.distance(pontoOrigem, pontoAlvo, { units: 'kilometers' }) * 0.539957
     );
 
-    img.title = `${radialMag}° ${distNM}NM`;
+    const proaMag = parseInt(origem.rumoMagnetic);
+    if (isNaN(proaMag)) {
+        img.title = `${distNM}NM`;
+        return;
+    }
+
+    const bearingTrue = turf.bearing(pontoOrigem, pontoAlvo);
+    const dirMag = (bearingTrue - declinacaoSBUR + 360) % 360;
+    const anguloRelativo = Math.round((dirMag - proaMag + 360) % 360)
+        .toString()
+        .padStart(3, '0');
+
+    img.title = `${anguloRelativo}° ${distNM}NM`;
 }
 
 // Limpa marcadores de estimado da tela
